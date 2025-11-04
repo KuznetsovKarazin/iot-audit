@@ -1,0 +1,10 @@
+
+cff-version: 1.2.0
+title: "IoT Device Network Audit (Binary & Multiclass IDS)"
+message: "If you use this repository, please cite it as below."
+authors:
+  - family-names: "Kuznetsov"
+    given-names: "Oleksandr"
+date-released: "2025-11-04"
+license: MIT
+version: "0.1.0"

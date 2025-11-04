@@ -1,0 +1,29 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.ipynb_checkpoints/
+
+# Envs
+.venv/
+.conda/
+env/
+venv/
+
+# Data & reports
+data/
+reports/
+reports_mc/
+figures/
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

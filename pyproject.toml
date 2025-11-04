@@ -1,0 +1,19 @@
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iot-audit"
+version = "0.1.0"
+description = "IoT device network audit: binary and multiclass intrusion detection pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name="Oleksandr Kuznetsov"}]
+dependencies = []
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+profile = "black"
