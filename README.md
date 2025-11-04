@@ -34,7 +34,7 @@ The work is aligned with ongoing EU research directions in **edge security, fede
 ---
 
 ## ⚙️ Architecture Overview
-
+```
 src/
 └── iot_audit/
 ├── preprocessing.py / preprocessing_mc.py # Data loading & encoding (binary / multiclass)
@@ -46,7 +46,7 @@ scripts/
 ├── train_mc_.py # Multiclass variants
 └── compare_models_mc.py # Multiclass comparison and benchmarks
 reports*/ # Generated metrics, plots, and summaries
-
+```
 
 Each model is isolated under its own folder, ensuring reproducibility and traceability.
 
@@ -160,6 +160,45 @@ reports_mc/
 - Inference latency per 1k flows (10k sample): `logreg_mc` ~**5.44ms**, `lgbm_mc` ~**45.39ms**.
 
 > Adjust thresholds for risk appetite: minimize FP for production or maximize recall on critical classes.
+
+## 📚 Dataset: TON_IoT Network Dataset
+
+**Name:** TON_IoT Network Dataset — IoT/IIoT network traffic for intrusion detection  
+**Provider:** Cyber Range & IoT Labs, UNSW Canberra (SEIT) — *TON_IoT dataset collection*  
+**Official page:** https://research.unsw.edu.au/projects/toniot-datasets  
+**License:** Creative Commons **Attribution 4.0 International (CC BY 4.0)** (see the TON_IoT site for details)
+
+This repository uses the *train/test* network flows subset often distributed as
+`train_test_network.csv` (~29.9 MB; 44 columns) (https://www.kaggle.com/datasets/arnobbhowmik/ton-iot-network-dataset). 
+The flows were captured in realistic
+IoT/IIoT smart-environment scenarios using tools such as **Argus** and **Bro (Zeek)**.
+The dataset contains **benign** and **malicious** traffic and is suitable for
+intrusion detection, anomaly detection, and ML benchmarking.
+
+> **Columns (examples, 10 of 44):**
+> `src_ip, src_port, dst_ip, dst_port, proto, service, duration, src_bytes, dst_bytes, conn_state, ...`
+>
+> Targets used in this repo:
+> - `label` — binary (0 = normal, 1 = attack)  
+> - `type`  — multiclass (e.g., `normal, ddos, dos, scanning, injection, xss, ransomware, password, backdoor, mitm`)
+
+**Notes & caveats**
+- Some high-cardinality text fields (e.g., `http_uri`, `ssl_subject`, `ssl_issuer`) are dropped by default to avoid leakage and reduce sparsity.
+- Distribution is imbalanced across classes (e.g., `mitm` is rare). We report **macro-F1** and per-class metrics.
+- Source of the CSV used here: community mirror (e.g., Kaggle: *ToN_IoT Network Dataset*). Refer to the **official UNSW page** for canonical downloads and documentation.
+
+### 📝 Acknowledgments
+We gratefully acknowledge **The TON_IoT Datasets** team at **UNSW Canberra** for creating and maintaining the dataset collection. Free academic use is permitted under CC BY 4.0; for commercial use consult the dataset authors.
+
+### 📖 Recommended citations (as provided by TON_IoT)
+- Moustafa, N. “A new distributed architecture for evaluating AI-based security systems at the edge: Network TON_IoT datasets.” *Sustainable Cities and Society* (2021): 102994.  
+- Booij, T. M., Chiscop, I., Meeuwissen, E., Moustafa, N., den Hartog, F. T. H. “ToN IoT—The role of heterogeneity… in IoT network intrusion datasets.” *IEEE IoT Journal* (2021).  
+- Alsaedi, A., Moustafa, N., Tari, Z., Mahmood, A., Anwar, A. “TON_IoT telemetry dataset…” *IEEE Access* 8 (2020): 165130-165150.  
+- Moustafa, N., Keshk, M., Debie, E., Janicke, H. “Federated TON_IoT Windows Datasets…” *IEEE TrustCom* (2020): 848-855.  
+- Moustafa, N., Ahmed, M., Ahmed, S. “Data Analytics-Enabled Intrusion Detection: Evaluations of ToN_IoT Linux Datasets.” *IEEE TrustCom* (2020): 727-735.  
+- Moustafa, N. “New Generations of IoT Datasets for Cybersecurity Applications based ML: TON_IoT Datasets.” *eResearch Australasia* (2019).
+
+> Please cite the relevant TON_IoT papers when publishing results that use this dataset.
 
 ## How to contribute
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please run lint before commits.
