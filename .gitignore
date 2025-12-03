@@ -15,8 +15,6 @@ venv/
 
 # Data & reports
 data/
-reports/
-reports_mc/
 figures/
 *.csv
 
