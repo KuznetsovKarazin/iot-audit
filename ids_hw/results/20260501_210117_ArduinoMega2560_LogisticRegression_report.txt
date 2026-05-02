@@ -1,0 +1,24 @@
+﻿============================================================
+  HARDWARE BENCHMARK RESULTS
+============================================================
+  Timestamp  : 20260501_210117
+  Model      : LogisticRegression
+  Board      : ArduinoMega2560
+  F1 (test)  : 0.9900     ROC-AUC : 0.9945
+  Size       : 3.20 KB
+  SRAM used  : 1012 B (0,99 KB)
+  Samples    : 40   Accuracy on hw : 1,0000
+
+  Latency per inference:
+    mean = 1270,0 us    std = 56,4 us
+    min  = 1208 us    max = 1340 us
+
+------------------------------------------------------------
+  PAPER-READY BLOCK
+------------------------------------------------------------
+  Model: LogisticRegression | Board: ArduinoMega2560
+  Inference latency: 1270,0 +/- 56,4 us (min 1208, max 1340)
+  SRAM usage: 1012 B (0,99 KB)
+  F1 (TON_IoT test set): 0.9900  |  ROC-AUC: 0.9945
+  Model size: 3.20 KB
+------------------------------------------------------------

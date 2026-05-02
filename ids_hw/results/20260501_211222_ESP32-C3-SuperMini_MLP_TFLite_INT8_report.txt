@@ -1,0 +1,24 @@
+﻿============================================================
+  HARDWARE BENCHMARK RESULTS
+============================================================
+  Timestamp  : 20260501_211222
+  Model      : MLP_TFLite_INT8
+  Board      : ESP32-C3-SuperMini
+  F1 (test)  : 0.9959     ROC-AUC : 0.9993
+  Size       : 13.03 KB
+  SRAM used  : 407924 B (398,36 KB)
+  Samples    : 40   Accuracy on hw : 1,0000
+
+  Latency per inference:
+    mean = 805,5 us    std = 15,5 us
+    min  = 792 us    max = 862 us
+
+------------------------------------------------------------
+  PAPER-READY BLOCK
+------------------------------------------------------------
+  Model: MLP_TFLite_INT8 | Board: ESP32-C3-SuperMini
+  Inference latency: 805,5 +/- 15,5 us (min 792, max 862)
+  SRAM usage: 407924 B (398,36 KB)
+  F1 (TON_IoT test set): 0.9959  |  ROC-AUC: 0.9993
+  Model size: 13.03 KB
+------------------------------------------------------------

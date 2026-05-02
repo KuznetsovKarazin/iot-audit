@@ -1,0 +1,24 @@
+﻿============================================================
+  HARDWARE BENCHMARK RESULTS
+============================================================
+  Timestamp  : 20260501_210222
+  Model      : DecisionTree_depth5
+  Board      : ArduinoMega2560
+  F1 (test)  : 0.9943     ROC-AUC : 0.9856
+  Size       : 4.76 KB
+  SRAM used  : 1010 B (0,99 KB)
+  Samples    : 40   Accuracy on hw : 1,0000
+
+  Latency per inference:
+    mean = 35,3 us    std = 3,2 us
+    min  = 32 us    max = 40 us
+
+------------------------------------------------------------
+  PAPER-READY BLOCK
+------------------------------------------------------------
+  Model: DecisionTree_depth5 | Board: ArduinoMega2560
+  Inference latency: 35,3 +/- 3,2 us (min 32, max 40)
+  SRAM usage: 1010 B (0,99 KB)
+  F1 (TON_IoT test set): 0.9943  |  ROC-AUC: 0.9856
+  Model size: 4.76 KB
+------------------------------------------------------------

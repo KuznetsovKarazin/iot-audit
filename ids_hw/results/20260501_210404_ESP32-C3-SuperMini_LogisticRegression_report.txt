@@ -1,0 +1,24 @@
+﻿============================================================
+  HARDWARE BENCHMARK RESULTS
+============================================================
+  Timestamp  : 20260501_210404
+  Model      : LogisticRegression
+  Board      : ESP32-C3-SuperMini
+  F1 (test)  : 0.9900     ROC-AUC : 0.9945
+  Size       : 3.20 KB
+  SRAM used  : 99896 B (97,55 KB)
+  Samples    : 40   Accuracy on hw : 1,0000
+
+  Latency per inference:
+    mean = 144,6 us    std = 7,1 us
+    min  = 141 us    max = 185 us
+
+------------------------------------------------------------
+  PAPER-READY BLOCK
+------------------------------------------------------------
+  Model: LogisticRegression | Board: ESP32-C3-SuperMini
+  Inference latency: 144,6 +/- 7,1 us (min 141, max 185)
+  SRAM usage: 99896 B (97,55 KB)
+  F1 (TON_IoT test set): 0.9900  |  ROC-AUC: 0.9945
+  Model size: 3.20 KB
+------------------------------------------------------------
