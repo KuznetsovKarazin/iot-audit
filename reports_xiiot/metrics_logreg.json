@@ -1,0 +1,189 @@
+{
+  "model": "logreg",
+  "scaled": true,
+  "host_resources_used": true,
+  "train_rows": 492604,
+  "validation_rows": 164104,
+  "test_rows": 164126,
+  "macro_f1_validation": 0.7982,
+  "recall_per_class_validation": {
+    "C&C": 0.9773,
+    "Exfiltration": 0.9916,
+    "Exploitation": 0.9163,
+    "Lateral _movement": 0.9593,
+    "Normal": 0.9373,
+    "RDOS": 0.9994,
+    "Reconnaissance": 0.8751,
+    "Tampering": 0.9893,
+    "Weaponization": 0.9698,
+    "crypto-ransomware": 0.9891
+  },
+  "macro_f1": 0.8157,
+  "balanced_accuracy": 0.9648,
+  "recall_per_class": {
+    "C&C": 0.9686,
+    "Exfiltration": 0.9862,
+    "Exploitation": 0.9559,
+    "Lateral _movement": 0.9683,
+    "Normal": 0.9364,
+    "RDOS": 1.0,
+    "Reconnaissance": 0.8672,
+    "Tampering": 0.9971,
+    "Weaponization": 0.9685,
+    "crypto-ransomware": 1.0
+  },
+  "support_per_class": {
+    "C&C": 573,
+    "Exfiltration": 4427,
+    "Exploitation": 227,
+    "Lateral _movement": 6319,
+    "Normal": 84283,
+    "RDOS": 28211,
+    "Reconnaissance": 25518,
+    "Tampering": 1024,
+    "Weaponization": 13452,
+    "crypto-ransomware": 92
+  },
+  "confusion_matrix": {
+    "labels": [
+      "C&C",
+      "Exfiltration",
+      "Exploitation",
+      "Lateral _movement",
+      "Normal",
+      "RDOS",
+      "Reconnaissance",
+      "Tampering",
+      "Weaponization",
+      "crypto-ransomware"
+    ],
+    "matrix": [
+      [
+        555,
+        0,
+        0,
+        0,
+        17,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        4366,
+        0,
+        3,
+        0,
+        0,
+        1,
+        0,
+        56,
+        0
+      ],
+      [
+        0,
+        0,
+        217,
+        0,
+        2,
+        0,
+        8,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        6,
+        68,
+        6119,
+        18,
+        0,
+        39,
+        67,
+        0,
+        0
+      ],
+      [
+        2792,
+        28,
+        363,
+        779,
+        78919,
+        89,
+        1153,
+        79,
+        37,
+        44
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        28211,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        70,
+        281,
+        5,
+        64,
+        2081,
+        1,
+        22128,
+        1,
+        887,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        2,
+        0,
+        0,
+        0,
+        1021,
+        0,
+        0
+      ],
+      [
+        0,
+        392,
+        0,
+        0,
+        3,
+        0,
+        29,
+        0,
+        13028,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        92
+      ]
+    ]
+  },
+  "cost": {
+    "missed_attack_cost": 4723,
+    "false_alarm_cost": 5364,
+    "mistriaged_attacks": 1985
+  },
+  "train_seconds": 80.9
+}
