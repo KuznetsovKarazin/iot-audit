@@ -1,7 +1,13 @@
 {
   "model": "logreg",
   "provenance": {
-    "commit": "7d9798b6fd96cf55e98a886926c64e2c44dc4255",
+    "commit": "5156a154b77e228353c03de360da16cabbfd31b1",
+    "tree_clean": false,
+    "source_sha256": {
+      "src/iot_audit/xiiotid.py": "d0ade6d42f790b628661082b90f61da1d43c273ec14b4999dacd6d30cc854b25",
+      "scripts/train_xiiotid_baseline.py": "18f51421c90357cc5099e6b92b329fe0fb3af730f7309ae8da16bcd954f2e719",
+      "configs/xiiotid_severity_cost.json": "8554a444f989bfaa344dd55c7e0080acdbc374342cbd17d6b3f55599ef4f75bb"
+    },
     "dataset_file": "X-IIoTID dataset.csv",
     "seed": 42,
     "dataset_sha256": "7b9290057ee42e784da3c0d84b781815502c9205c74175c96374e71a5ffd98a0",
@@ -347,5 +353,5 @@
     "false_alarm_cost": 4639,
     "mistriaged_attacks_not_weighted": 3997
   },
-  "train_seconds": 112.6
+  "train_seconds": 105.3
 }

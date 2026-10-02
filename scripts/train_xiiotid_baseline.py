@@ -17,7 +17,9 @@ from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
 from iot_audit.preprocessing import SCALE
 from iot_audit.xiiotid import (TARGET, SEED, build_preprocessor, check_manifest, clean,
-                               feature_columns, load, manifest_fingerprints, split)
+                               feature_columns, load, manifest_fingerprints, sha256, split)
+
+SOURCES = ["src/iot_audit/xiiotid.py", "scripts/train_xiiotid_baseline.py"]
 
 # hyperparameters follow the existing scripts/train_mc_*.py of this repository
 MODELS = {
@@ -64,6 +66,9 @@ def main():
     check_manifest(args.outdir, args.csv, parts)  # stops here if dataset or split changed
     provenance = {
         "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
+        "tree_clean": not subprocess.run(["git", "status", "--porcelain"], capture_output=True,
+                                         text=True).stdout.strip(),
+        "source_sha256": {f: sha256(f) for f in SOURCES + [args.costs]},
         "dataset_file": os.path.basename(args.csv),
         "seed": SEED,
         **manifest_fingerprints(args.csv, parts),

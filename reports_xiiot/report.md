@@ -158,8 +158,7 @@ Recall per classe sul test, stesso split per tutti:
 Lettura, senza sintesi forzate. I tre modelli ad albero sono vicini ma non equivalenti, e si ordinano
 in modo diverso secondo la metrica: Random Forest ha la Macro-F1 di test più alta (0,9837 contro 0,9773
 di LightGBM) e il costo di falsi allarmi più basso (117 contro 188), mentre LightGBM ha la Balanced
-Accuracy migliore (0,9876) e il costo di attacchi mancati più basso (2.606 contro 4.417), cioè meno
-della metà. Quale sia preferibile dipende da come si pesano i due costi, e la matrice della sezione
+Accuracy migliore (0,9876) e il costo di attacchi mancati più basso (2.606 contro 4.417, il 41% in meno). Quale sia preferibile dipende da come si pesano i due costi, e la matrice della sezione
 successiva è lo strumento per deciderlo. XGBoost sta in mezzo su tutte le voci. La regressione
 logistica resta indietro di 17 punti di Macro-F1 e produce da 50 a 80 volte più costo di falsi allarmi.
 Sulla validazione l'ordine cambia: XGBoost è primo (0,9346) e Random Forest ultimo dei tre alberi
@@ -241,4 +240,6 @@ Regression 93 s, XGBoost 145 s, LightGBM 562 s, varianti no-host 30 e 113 s, con
 Definition of Done meno di un secondo.
 
 Il campo `provenance.commit` di ogni file di metriche è il commit da cui l'esecuzione è partita, quindi
-precede necessariamente il commit che aggiunge gli artefatti aggiornati.
+precede il commit che aggiunge gli artefatti; `provenance.source_sha256` riporta gli sha256 dei file
+eseguiti — `xiiotid.py`, lo script di training e la config dei costi — così la versione esatta resta
+verificabile anche quando `tree_clean` è falso.
