@@ -1,11 +1,52 @@
 {
   "model": "rf",
+  "provenance": {
+    "commit": "7d9798b6fd96cf55e98a886926c64e2c44dc4255",
+    "dataset_file": "X-IIoTID dataset.csv",
+    "seed": 42,
+    "dataset_sha256": "7b9290057ee42e784da3c0d84b781815502c9205c74175c96374e71a5ffd98a0",
+    "index_sha256": {
+      "train": "19e58a59e0523bd25b900d4f827bc41f7a68a7bd1cf154b46a650dd0aaae0771",
+      "validation": "0da40240b4c2ad2575bdd3d68e19b38d8ce82e117df562a61e363cd4756201e4",
+      "test": "31acb2ea12578f458937055fdcc2668d09f57dd9f6bd701f2f862b2ca092046f"
+    }
+  },
+  "configuration": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced_subsample",
+    "criterion": "gini",
+    "max_features": "sqrt",
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "n_estimators": 200,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "features_used": 30,
   "scaled": false,
   "host_resources_used": false,
   "train_rows": 492604,
   "validation_rows": 164104,
   "test_rows": 164126,
   "macro_f1_validation": 0.9399,
+  "recall_per_class_validation": {
+    "C&C": 0.9913,
+    "Exfiltration": 0.9887,
+    "Exploitation": 0.7621,
+    "Lateral _movement": 0.9796,
+    "Normal": 0.9943,
+    "RDOS": 0.9965,
+    "Reconnaissance": 0.9809,
+    "Tampering": 0.9902,
+    "Weaponization": 0.9981,
+    "crypto-ransomware": 0.913
+  },
   "macro_f1": 0.9596,
   "balanced_accuracy": 0.9694,
   "recall_per_class": {
@@ -168,10 +209,146 @@
       ]
     ]
   },
+  "confusion_matrix_validation": {
+    "labels": [
+      "C&C",
+      "Exfiltration",
+      "Exploitation",
+      "Lateral _movement",
+      "Normal",
+      "RDOS",
+      "Reconnaissance",
+      "Tampering",
+      "Weaponization",
+      "crypto-ransomware"
+    ],
+    "matrix": [
+      [
+        568,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        4377,
+        1,
+        0,
+        0,
+        0,
+        40,
+        0,
+        9,
+        0
+      ],
+      [
+        0,
+        1,
+        173,
+        0,
+        12,
+        0,
+        41,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        6190,
+        117,
+        0,
+        6,
+        5,
+        0,
+        0
+      ],
+      [
+        129,
+        0,
+        2,
+        129,
+        83801,
+        3,
+        202,
+        12,
+        0,
+        6
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        6,
+        28089,
+        92,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        19,
+        126,
+        4,
+        266,
+        59,
+        25030,
+        0,
+        12,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3,
+        7,
+        0,
+        0,
+        1015,
+        0,
+        0
+      ],
+      [
+        0,
+        10,
+        0,
+        0,
+        3,
+        0,
+        12,
+        0,
+        13427,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        84
+      ]
+    ]
+  },
   "cost": {
     "missed_attack_cost": 2754,
-    "false_alarm_cost": 481,
-    "mistriaged_attacks": 400
+    "false_alarm_cost": 758,
+    "mistriaged_attacks_not_weighted": 400
   },
-  "train_seconds": 26.8
+  "train_seconds": 30.2
 }

@@ -1,5 +1,39 @@
 {
   "model": "lgbm",
+  "provenance": {
+    "commit": "7d9798b6fd96cf55e98a886926c64e2c44dc4255",
+    "dataset_file": "X-IIoTID dataset.csv",
+    "seed": 42,
+    "dataset_sha256": "7b9290057ee42e784da3c0d84b781815502c9205c74175c96374e71a5ffd98a0",
+    "index_sha256": {
+      "train": "19e58a59e0523bd25b900d4f827bc41f7a68a7bd1cf154b46a650dd0aaae0771",
+      "validation": "0da40240b4c2ad2575bdd3d68e19b38d8ce82e117df562a61e363cd4756201e4",
+      "test": "31acb2ea12578f458937055fdcc2668d09f57dd9f6bd701f2f862b2ca092046f"
+    }
+  },
+  "configuration": {
+    "boosting_type": "gbdt",
+    "class_weight": "balanced",
+    "colsample_bytree": 0.9,
+    "importance_type": "split",
+    "learning_rate": 0.05,
+    "max_depth": -1,
+    "min_child_samples": 20,
+    "min_child_weight": 0.001,
+    "min_split_gain": 0.0,
+    "n_estimators": 600,
+    "n_jobs": -1,
+    "num_leaves": 63,
+    "objective": "multiclass",
+    "random_state": 42,
+    "reg_alpha": 0.0,
+    "reg_lambda": 0.0,
+    "subsample": 0.9,
+    "subsample_for_bin": 200000,
+    "subsample_freq": 0,
+    "verbose": -1
+  },
+  "features_used": 54,
   "scaled": false,
   "host_resources_used": true,
   "train_rows": 492604,
@@ -180,10 +214,146 @@
       ]
     ]
   },
+  "confusion_matrix_validation": {
+    "labels": [
+      "C&C",
+      "Exfiltration",
+      "Exploitation",
+      "Lateral _movement",
+      "Normal",
+      "RDOS",
+      "Reconnaissance",
+      "Tampering",
+      "Weaponization",
+      "crypto-ransomware"
+    ],
+    "matrix": [
+      [
+        557,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        4423,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        219,
+        0,
+        6,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        6235,
+        77,
+        0,
+        1,
+        6,
+        0,
+        0
+      ],
+      [
+        36,
+        0,
+        1,
+        30,
+        84135,
+        0,
+        68,
+        12,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        2,
+        28178,
+        7,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        22,
+        547,
+        47,
+        322,
+        0,
+        24580,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        17,
+        0,
+        0,
+        1007,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        2,
+        0,
+        2,
+        0,
+        13446,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        91
+      ]
+    ]
+  },
   "cost": {
     "missed_attack_cost": 2606,
-    "false_alarm_cost": 130,
-    "mistriaged_attacks": 180
+    "false_alarm_cost": 188,
+    "mistriaged_attacks_not_weighted": 180
   },
-  "train_seconds": 109.1
+  "train_seconds": 561.5
 }

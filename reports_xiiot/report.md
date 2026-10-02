@@ -16,38 +16,64 @@ l'hash è riportato sulla scheda Trello.
 
 Registrazione completa in [`manifest.json`](manifest.json), prodotto dall'audit.
 
-## Feature escluse e perché
+## Schema dei predittori e feature escluse
+
+Lo schema è deciso sulle sole righe di training: le colonne costanti e la distinzione fra numeriche e
+categoriche si ricavano dal training e si applicano invariate a validation e test.
 
 | Gruppo | Colonne | Motivo |
 |---|---|---|
 | Etichette | `class1`, `class2`, `class3` | sono il target e le sue varianti |
-| Alert di altri IDS | `anomaly_alert`, `OSSEC_alert`, `OSSEC_alert_level` | derivano dal target: sono già una decisione di rilevamento |
+| Alert di altri IDS | `anomaly_alert`, `OSSEC_alert`, `OSSEC_alert_level` | sono output di altri sistemi di rilevamento, cioè una decisione già presa, non etichette derivate dal target |
 | Identificativi del testbed | `Date`, `Timestamp`, `Scr_IP`, `Des_IP`, `Scr_port`, `Des_port` | legano il modello alla topologia dell'esperimento |
 | Costanti | `Bad_checksum`, `is_SYN_with_RST` | un solo valore in tutto il dataset |
 
 ## Split
 
-**Finestra canonica.** Le feature `Avg_*`/`Std_*` sono aggregati che il testbed ha calcolato su finestre
-di 10 secondi, quindi la finestra è esattamente il tratto contiguo di flussi che condividono lo stesso
-vettore di aggregati. Il bin `Timestamp // 10` ne è solo una proxy, e i dati la smentiscono: flussi
-dentro lo stesso bin portano vettori di aggregati diversi, quindi il bin non è la finestra usata dal
-testbed. Adottare la definizione canonica riduce la duplicazione residua dal 51,0% al 6,1% delle righe
-di test e porta `crypto-ransomware` da 5 righe di training a 274.
+**Finestra inferita, non ufficiale.** Il dataset documenta che le feature `Avg_*`/`Std_*` sono aggregate
+su 10 secondi (DOI 10.1109/JIOT.2021.3102056) ma non contiene un identificativo di finestra. I gruppi
+usati qui sono quindi una ricostruzione: tratti contigui di righe che condividono lo stesso vettore di
+aggregati. Il bin `Timestamp // 10` è una proxy più debole, perché flussi dentro lo stesso bin portano
+vettori diversi. Raggruppare per questi tratti tiene aggregati identici dallo stesso lato dello split;
+non dimostra indipendenza temporale né assenza di leakage in generale. Rispetto alla proxy, la
+duplicazione residua delle misure host scende dal 51,0% al 6,1% delle righe di test e
+`crypto-ransomware` passa da 5 righe di training a 274.
 
-**Tre parti.** `StratifiedGroupKFold` a 5 fold per isolare il test, poi a 4 fold per la validazione;
-a ogni taglio si tiene il fold che massimizza la quota per classe più piccola sul lato più debole, così
-nessuna classe manca da una parte. Regola deterministica, seed 42. Nessuna finestra è divisa fra due parti.
+**Diagnostiche dei gruppi inferiti**, in `manifest.json` sotto `group_diagnostics`:
 
 | Voce | Valore |
 |---|---|
-| Finestre canoniche | 59.493 |
+| Gruppi costruiti | 59.493 |
+| Righe per gruppo (mediana / p95 / max) | 5 / 34 / 5.707 |
+| Durata del gruppo in secondi (mediana / p95) | 6 / 9 |
+| Gruppi più lunghi della finestra documentata di 10 s | 7 (144 righe), di cui 3 oltre un'ora |
+| Righe con timestamp non numerico | 451 |
+| Timestamp che portano più di un gruppo | 1.364 |
+| Gruppi che attraversano più di un bin da 10 s | 28.470 |
+
+La durata mediana di 6 secondi e il p95 di 9 sono compatibili con l'aggregazione documentata, e solo
+7 gruppi su 59.493 la superano; il più lungo copre 96 giorni, segno che la ricostruzione non è esatta
+in coda. I 1.364 timestamp con più di un gruppo sono la prova che il bin da 10 secondi non coincide
+con la finestra del testbed.
+
+**Tre parti.** `StratifiedGroupKFold` a 5 fold per isolare il test, poi a 4 fold per la validazione;
+a ogni taglio si tiene il fold che massimizza la quota per classe più piccola sul lato più debole, così
+nessuna classe manca da una parte. Regola deterministica, seed 42. Nessuno dei gruppi costruiti è diviso fra due parti; la
+disgiunzione è verificata dall'audit sulle tre coppie.
+
+| Voce | Valore |
+|---|---|
+| Gruppi (finestre inferite) | 59.493 |
 | Righe train / validation / test | 492.604 / 164.104 / 164.126 (60/20/20) |
 | sha256 indici train | `19e58a59e0523bd2…` |
 | sha256 indici validation | `0da40240b4c2ad25…` |
 | sha256 indici test | `31acb2ea12578f45…` |
 
-Lo split è ricostruito da `iot_audit.xiiotid.split()` e i tre hash sono verificati dall'audit, quindi
-tutti i confronti girano sullo stesso split. La validazione serve al confronto fra modelli, il test
+Lo split è ricostruito da `iot_audit.xiiotid.split()`. Il manifest è scritto una volta sola, con
+`--write`; da allora audit, training e controllo della Definition of Done confrontano sha256 del
+dataset e i tre hash degli indici con quanto registrato, e si fermano sulle differenze senza
+sovrascrivere il file. Ogni file di metriche riporta commit, hash e configurazione del modello, quindi
+l'appartenenza allo stesso split è verificabile a posteriori. La validazione serve al confronto fra modelli, il test
 produce i numeri riportati.
 
 | class2 | train | validation | test |
@@ -71,23 +97,31 @@ dal training.
 ## Audit target leakage: PASS
 
 ```
-python scripts/xiiotid_audit.py --csv "data/X-IIoTID dataset.csv"
+python scripts/xiiotid_audit.py --csv "data/X-IIoTID dataset.csv"   # --write per registrarlo
 
 PASS [xiiotid] single target fixed (class2, 10 classes)
 PASS [xiiotid] no label column among predictors
-PASS [xiiotid] no IDS alert among predictors
+PASS [xiiotid] no third-party IDS alert among predictors
 PASS [xiiotid] no testbed identifier among predictors
 PASS [xiiotid] train, validation and test are disjoint
-PASS [xiiotid] no canonical window shared by any two parts
+PASS [xiiotid] feature schema decided on training rows only
+PASS [xiiotid] no inferred window shared by any two parts
 PASS [xiiotid] preprocessing fitted on train rows only
 PASS [xiiotid] every class present in every part
-PASS [xiiotid] split reproducible from the manifest
+PASS [xiiotid] dataset and split match the registered manifest
 WARN [xiiotid] 6.1% of test rows share a host-resource vector with train
 exit 0
 ```
 
-Suite completa: `python -m pytest -q` → 19 passed (14 della base più 5 nuovi in
-`tests/test_xiiotid_leakage.py`, che girano su dati sintetici e non richiedono il dataset).
+Suite completa: `python -m pytest -q` → 22 passed (14 della base più 8 in
+`tests/test_xiiotid_leakage.py`, che girano su dati sintetici e non richiedono il dataset). Fra questi
+due test negativi: un manifest in disaccordo con lo split fa fallire l'esecuzione senza essere
+sovrascritto, e modificare le righe di validation e test non cambia né le feature né i tipi scelti.
+
+Controprova eseguita a mano sul dataset vero, alterando l'hash dell'indice di test nel manifest:
+l'audit stampa `ERROR ... dataset and split match the registered manifest` ed esce con 1, il training
+si ferma con `ValueError: manifest does not match this run`, e il manifest resta alterato, cioè non
+viene riscritto.
 
 ## Baseline
 
@@ -99,12 +133,12 @@ python scripts/train_xiiotid_baseline.py --csv "data/X-IIoTID dataset.csv" --mod
 Quattro modelli sullo stesso split: LightGBM, XGBoost, Random Forest e Logistic Regression.
 Gli iperparametri degli alberi seguono quelli già usati negli script `train_mc_*.py` del repository.
 
-| Modello | Macro-F1 test | Macro-F1 validation | Balanced Accuracy | Costo attacchi mancati | Costo falsi allarmi | Tempo |
-|---|---|---|---|---|---|---|
-| Random Forest | 0,9837 | 0,9309 | 0,9752 | 4.417 | 94 | 45 s |
-| XGBoost | 0,9814 | 0,9346 | 0,9864 | 2.863 | 114 | 149 s |
-| LightGBM | 0,9773 | 0,9332 | 0,9876 | 2.606 | 130 | 109 s |
-| Logistic Regression | 0,8157 | 0,7982 | 0,9648 | 4.723 | 5.364 | 81 s |
+| Modello | Macro-F1 test | Macro-F1 validation | Balanced Accuracy | Costo attacchi mancati | Costo falsi allarmi | Attacchi mal classificati (non pesati) | Tempo |
+|---|---|---|---|---|---|---|---|
+| Random Forest | 0,9837 | 0,9309 | 0,9752 | 4.417 | 117 | 95 | 55 s |
+| XGBoost | 0,9814 | 0,9346 | 0,9864 | 2.863 | 151 | 89 | 145 s |
+| LightGBM | 0,9773 | 0,9332 | 0,9876 | 2.606 | 188 | 180 | 562 s |
+| Logistic Regression | 0,8157 | 0,7982 | 0,9648 | 4.723 | 9.538 | 1.985 | 93 s |
 
 Recall per classe sul test, stesso split per tutti:
 
@@ -121,11 +155,16 @@ Recall per classe sul test, stesso split per tutti:
 | Exploitation | 227 | 0,899 | 0,960 | 0,974 | 0,956 |
 | crypto-ransomware | 92 | 1,000 | 0,989 | 0,978 | 1,000 |
 
-I tre modelli ad albero si equivalgono: Random Forest ha la Macro-F1 più alta, LightGBM la Balanced
-Accuracy migliore e il costo di attacchi mancati più basso (2.606 contro 4.417), a parità di falsi
-allarmi. La regressione logistica resta indietro di 17 punti di Macro-F1 e produce 40 volte più falsi
-allarmi. La recall per classe sulla validazione è in `recall_per_class_validation` dentro ogni file
-di metriche.
+Lettura, senza sintesi forzate. I tre modelli ad albero sono vicini ma non equivalenti, e si ordinano
+in modo diverso secondo la metrica: Random Forest ha la Macro-F1 di test più alta (0,9837 contro 0,9773
+di LightGBM) e il costo di falsi allarmi più basso (117 contro 188), mentre LightGBM ha la Balanced
+Accuracy migliore (0,9876) e il costo di attacchi mancati più basso (2.606 contro 4.417), cioè meno
+della metà. Quale sia preferibile dipende da come si pesano i due costi, e la matrice della sezione
+successiva è lo strumento per deciderlo. XGBoost sta in mezzo su tutte le voci. La regressione
+logistica resta indietro di 17 punti di Macro-F1 e produce da 50 a 80 volte più costo di falsi allarmi.
+Sulla validazione l'ordine cambia: XGBoost è primo (0,9346) e Random Forest ultimo dei tre alberi
+(0,9309), un'altra ragione per non dichiarare un vincitore su una singola cifra. La recall per classe
+sulla validazione e la matrice di confusione di validazione sono in ogni file di metriche.
 
 **Divario fra validazione e test.** La Macro-F1 di validazione è circa 5 punti sotto quella di test per
 tutti e tre gli alberi. La differenza viene da una sola classe: `Exploitation`, 227 righe per parte, su
@@ -137,17 +176,21 @@ Dettaglio e matrici di confusione in `metrics_rf.json`, `metrics_xgb.json`, `met
 `metrics_logreg.json`. Variante senza feature host, sullo stesso split, in `metrics_rf_no_host.json`
 e `metrics_logreg_no_host.json`:
 
-| Modello senza feature host | Macro-F1 test | Balanced Accuracy |
-|---|---|---|
-| Random Forest | 0,9596 | 0,9694 |
-| Logistic Regression | 0,8143 | 0,9476 |
+| Modello senza feature host | Macro-F1 test | Macro-F1 validation | Balanced Accuracy | Feature |
+|---|---|---|---|---|
+| Random Forest | 0,9596 | 0,9399 | 0,9694 | 30 |
+| Logistic Regression | 0,8143 | 0,7950 | 0,9476 | 30 |
+
+I due file no-host hanno gli stessi campi degli altri, compresi provenance, recall per classe di
+validazione e matrice di confusione di validazione.
 
 ## Matrice attacco → gravità → costo
 
 Prima versione in [`configs/xiiotid_severity_cost.json`](../configs/xiiotid_severity_cost.json):
-gravità da 1 a 5 secondo la fase della kill chain e l'impatto sul processo industriale, costo del
-falso negativo separato dal costo del falso allarme, in unità relative. I valori sono la proposta
-della responsabile della linea, sottoposta al relatore per validazione.
+gravità da 0 a 5 secondo la fase della kill chain e l'impatto sul processo industriale, costo del
+falso negativo separato dal costo del falso allarme, in unità relative. È un'ipotesi di scenario con
+pesi relativi motivati uno per uno, non una misura empirica del danno, e resta sottoposta al relatore
+per validazione.
 
 | class2 | Gravità | Costo FN | Costo FP |
 |---|---|---|---|
@@ -162,25 +205,40 @@ della responsabile della linea, sottoposta al relatore per validazione.
 | Exfiltration | 5 | 25 | 2 |
 | crypto-ransomware | 5 | 30 | 2 |
 
-Il costo riportato nella tabella della baseline somma il costo FN degli attacchi classificati come
-`Normal` e il costo FP del traffico normale classificato come attacco.
+Come la applica `expected_cost()`: un attacco classificato come `Normal` pesa il `cost_fn` della sua
+classe vera; traffico normale classificato come attacco pesa il `cost_fp` della classe che il modello
+ha alzato, quindi i valori per classe della tabella sono quelli effettivamente usati. Le confusioni fra
+attacchi diversi sono **contate ma non pesate**, nel campo `mistriaged_attacks_not_weighted`: un
+attacco riconosciuto come attacco di altra fase resta un allarme alzato, e attribuirgli un costo
+richiederebbe un'ipotesi sulla risposta operativa che qui non facciamo.
 
 ## Limiti dichiarati
 
 1. **crypto-ransomware**: 458 righe in tutto, divise in 274 / 92 / 92. Restano poche, ma la classe è
    ora allenabile e misurabile in tutte e tre le parti.
 2. **Misure host ripetute**: il 6,1% delle righe di test (10.057) ha un vettore `Avg_*`/`Std_*` identico
-   a una riga di training, perché lo stesso vettore può ripresentarsi in finestre distinte e non
-   contigue. Nessuna finestra è divisa, e la definizione canonica ha ridotto il fenomeno da oltre metà
-   del test a un ventesimo. Le righe identiche su tutte e 54 le feature sono lo 0,6% del test (1.018,
-   in maggioranza RDOS), quindi il livello delle metriche non è spiegato da duplicazione.
+   a una riga di training, perché lo stesso vettore può ripresentarsi in gruppi distinti e non contigui.
+   Nessun gruppo è diviso, e il passaggio dalla proxy temporale ai gruppi inferiti ha ridotto il
+   fenomeno da oltre metà del test a un ventesimo. Le righe identiche su tutte le feature sono lo 0,6%
+   del test (1.018, in maggioranza RDOS): una duplicazione esatta così limitata non spiega da sola il
+   livello delle metriche, ma non esclude altre forme di somiglianza fra righe vicine.
 3. **Exploitation instabile**: 227 righe per parte, precisione fra 0,29 e 0,99 secondo la parte. Le
-   conclusioni su quella classe vanno prese con cautela.
-4. **Definizione di finestra**: la finestra canonica è dedotta dai dati, non documentata dal dataset.
-   Se il relatore disponesse di un identificativo ufficiale di finestra, va sostituito a questa deduzione.
-5. **Costi**: la matrice gravità-costo è la proposta della responsabile, sottoposta al relatore.
+   conclusioni su quella classe vanno prese con cautela; la matrice di confusione di validazione è
+   esportata in ogni file di metriche per permettere la verifica.
+4. **Definizione dei gruppi**: sono gruppi inferiti dai dati, non identificativi ufficiali di finestra.
+   Le diagnostiche sopra ne mostrano l'aderenza ai 10 secondi documentati e i casi fuori scala. Se
+   esiste un identificativo ufficiale, va sostituito a questa ricostruzione.
+5. **Costi**: ipotesi di scenario, non misura empirica; le confusioni fra attacchi sono contate e non
+   pesate.
+6. **Portata della verifica**: 22 test PASS, audit PASS e coerenza fra metriche e matrici di confusione
+   non equivalgono alla validazione completa del protocollo.
 
 ## Ambiente
 
 Python 3.14.7, scikit-learn 1.9.1, pandas 3.0.5, numpy 2.5.3, scipy 1.18.1,
-Linux 7.2.4 x86_64. Tempi: audit ~50 s, Random Forest 45 s, Logistic Regression 81 s, LightGBM 109 s, XGBoost 149 s.
+Linux 7.2.4 x86_64. Tempi dell'ultima esecuzione: audit circa 50 s, Random Forest 55 s, Logistic
+Regression 93 s, XGBoost 145 s, LightGBM 562 s, varianti no-host 30 e 113 s, controllo della
+Definition of Done meno di un secondo.
+
+Il campo `provenance.commit` di ogni file di metriche è il commit da cui l'esecuzione è partita, quindi
+precede necessariamente il commit che aggiunge gli artefatti aggiornati.

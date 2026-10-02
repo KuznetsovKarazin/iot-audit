@@ -1,10 +1,13 @@
 """X-IIoTID baseline on the frozen split: Macro-F1, Balanced Accuracy, per-class recall.
 
-Run scripts/xiiotid_audit.py first. Every model here uses the same split, so the
-numbers are comparable; results go to reports_xiiot/metrics_<model>.json.
+Run scripts/xiiotid_audit.py first: this script refuses to train unless the dataset
+sha256 and the three split index hashes still match the registered manifest. Every
+model uses the same split, so the numbers are comparable; each metrics file records the
+commit, those hashes and the model configuration, and results go to
+reports_xiiot/metrics_<model>.json.
 """
 from __future__ import annotations
-import argparse, json, os, sys, time
+import argparse, json, os, subprocess, sys, time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -13,7 +16,8 @@ from sklearn.metrics import balanced_accuracy_score, confusion_matrix, f1_score,
 from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
 from iot_audit.preprocessing import SCALE
-from iot_audit.xiiotid import TARGET, SEED, build_preprocessor, clean, feature_columns, load, split
+from iot_audit.xiiotid import (TARGET, SEED, build_preprocessor, check_manifest, clean,
+                               feature_columns, load, manifest_fingerprints, split)
 
 # hyperparameters follow the existing scripts/train_mc_*.py of this repository
 MODELS = {
@@ -31,12 +35,17 @@ MODELS = {
 
 
 def expected_cost(y_true, y_pred, costs):
-    """Cost of missed attacks and of false alarms, using configs/xiiotid_severity_cost.json."""
+    """Weighted cost from configs/xiiotid_severity_cost.json, as the config defines it.
+
+    A missed attack is weighted by cost_fn of its true class; a false alarm by cost_fp of
+    the class the model raised, so the per-class cost_fp values in the config are the ones
+    applied. Attack-to-attack confusions are counted, not weighted.
+    """
     missed = sum(costs[t]["cost_fn"] for t, p in zip(y_true, y_pred) if t != "Normal" and p == "Normal")
-    false_alarms = sum(costs["Normal"]["cost_fp"] for t, p in zip(y_true, y_pred) if t == "Normal" and p != "Normal")
+    false_alarms = sum(costs[p]["cost_fp"] for t, p in zip(y_true, y_pred) if t == "Normal" and p != "Normal")
     mistriaged = sum(1 for t, p in zip(y_true, y_pred) if t != "Normal" and p != "Normal" and t != p)
     return {"missed_attack_cost": int(missed), "false_alarm_cost": int(false_alarms),
-            "mistriaged_attacks": int(mistriaged)}
+            "mistriaged_attacks_not_weighted": int(mistriaged)}
 
 
 def main():
@@ -50,9 +59,17 @@ def main():
     args = ap.parse_args()
 
     df = load(args.csv)
-    cols = feature_columns(df, drop_host_resources=args.drop_host_resources)
-    X, numeric, categorical = clean(df, cols["features"])
     train_idx, val_idx, test_idx = split(df)
+    parts = {"train": train_idx, "validation": val_idx, "test": test_idx}
+    check_manifest(args.outdir, args.csv, parts)  # stops here if dataset or split changed
+    provenance = {
+        "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip(),
+        "dataset_file": os.path.basename(args.csv),
+        "seed": SEED,
+        **manifest_fingerprints(args.csv, parts),
+    }
+    cols = feature_columns(df, train_idx, drop_host_resources=args.drop_host_resources)
+    X, numeric, categorical = clean(df, cols["features"], train_idx)
     y_train, y_val, y_test = (df[TARGET].iloc[i] for i in (train_idx, val_idx, test_idx))
     costs = json.load(open(args.costs, encoding="utf-8"))["classes"]
     os.makedirs(args.outdir, exist_ok=True)
@@ -72,6 +89,9 @@ def main():
         labels = sorted(df[TARGET].unique())
         metrics = {
             "model": name,
+            "provenance": provenance,
+            "configuration": {k: v for k, v in model.get_params().items() if v is not None},
+            "features_used": len(cols["features"]),
             "scaled": SCALE[name],
             "host_resources_used": not args.drop_host_resources,
             "train_rows": int(len(train_idx)),
@@ -88,12 +108,14 @@ def main():
             "support_per_class": y_test.value_counts().reindex(labels, fill_value=0).to_dict(),
             "confusion_matrix": {"labels": labels,
                                  "matrix": confusion_matrix(y_test, y_pred, labels=labels).tolist()},
+            "confusion_matrix_validation": {"labels": labels,
+                                            "matrix": confusion_matrix(y_val, y_val_pred, labels=labels).tolist()},
             "cost": expected_cost(y_test.tolist(), list(y_pred), costs),
             "train_seconds": round(time.time() - start, 1),
         }
         suffix = "_no_host" if args.drop_host_resources else ""
         with open(os.path.join(args.outdir, f"metrics_{name}{suffix}.json"), "w", encoding="utf-8") as f:
-            json.dump(metrics, f, indent=2, ensure_ascii=False)
+            json.dump(metrics, f, indent=2, ensure_ascii=False, default=str)
         print(f"[{name}] macro-F1 {metrics['macro_f1']} | balanced accuracy {metrics['balanced_accuracy']} "
               f"| {metrics['train_seconds']}s")
 

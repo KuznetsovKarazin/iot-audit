@@ -135,6 +135,7 @@
       "Protocol",
       "Service"
     ],
+    "schema_learnt_on": "training rows only",
     "excluded_labels": [
       "class1",
       "class2",
@@ -161,9 +162,8 @@
   },
   "split": {
     "method": "StratifiedGroupKFold(n_splits=5) for test, then 4 for validation; at each cut the fold maximising the smallest per-class share on the weaker side",
-    "group": "canonical window: run of constant host-resource vector, aggregated by the testbed over 10 seconds",
+    "group": "inferred window: run of consecutive rows with a constant host-resource vector; the dataset documents 10-second aggregation but ships no window id",
     "seed": 42,
-    "windows": 59493,
     "rows": {
       "train": 492604,
       "validation": 164104,
@@ -174,6 +174,23 @@
       "validation": "0da40240b4c2ad2575bdd3d68e19b38d8ce82e117df562a61e363cd4756201e4",
       "test": "31acb2ea12578f458937055fdcc2668d09f57dd9f6bd701f2f862b2ca092046f"
     }
+  },
+  "group_diagnostics": {
+    "groups": 59493,
+    "rows_per_group": {
+      "median": 5.0,
+      "p95": 34.0,
+      "max": 5707
+    },
+    "seconds_per_group": {
+      "median": 6.0,
+      "p95": 9.0,
+      "max": 8289170.0
+    },
+    "groups_longer_than_the_documented_window": 7,
+    "rows_with_missing_timestamp": 451,
+    "timestamps_carrying_more_than_one_group": 1364,
+    "groups_spanning_more_than_one_10s_bin": 28470
   },
   "class_distribution": {
     "train": {
@@ -216,6 +233,6 @@
   "residual_risk": {
     "test_rows_sharing_host_resource_vector_with_train": 10057,
     "share_of_test_rows": 0.0613,
-    "note": "Host-resource aggregates repeat across windows, so identical vectors appear on both sides even though no window is split. Re-run the baseline with --drop-host-resources on the same split to measure the effect."
+    "note": "The same host-resource vector can reappear in non-contiguous windows, so identical vectors show up on both sides even though no inferred window is split. This measures that exposure; it does not prove the absence of leakage."
   }
 }
