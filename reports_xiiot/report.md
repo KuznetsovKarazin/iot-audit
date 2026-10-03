@@ -1,7 +1,7 @@
 # X-IIoTID — prima baseline con split bloccato
 
-Base: 5bb5b62 (merge PR #4). Questa consegna è il primo commit del branch `feat/xiiotid-baseline`;
-l'hash è riportato sulla scheda Trello.
+Base: 5bb5b62 (merge PR #4). Ultimo commit di questa consegna sul branch `feat/xiiotid-baseline`:
+37ddb6e.
 
 ## Dataset registrato
 
@@ -235,9 +235,12 @@ richiederebbe un'ipotesi sulla risposta operativa che qui non facciamo.
 ## Ambiente
 
 Python 3.14.7, scikit-learn 1.9.1, pandas 3.0.5, numpy 2.5.3, scipy 1.18.1,
-Linux 7.2.4 x86_64. Tempi dell'ultima esecuzione: audit circa 50 s, Random Forest 55 s, Logistic
-Regression 93 s, XGBoost 145 s, LightGBM 562 s, varianti no-host 30 e 113 s, controllo della
-Definition of Done meno di un secondo.
+Linux 7.2.4 x86_64. Tempi dell'ultima esecuzione, come registrati in `train_seconds` nei JSON: audit
+circa 50 s, Random Forest 50,0 s, Logistic Regression 79,7 s, XGBoost 124,9 s, LightGBM 628,6 s,
+varianti no-host 27,5 e 105,3 s, controllo della Definition of Done meno di un secondo. I sei
+addestramenti sono stati ripetuti su 5156a15 per registrare gli hash dei sorgenti: le metriche sono
+identiche al run precedente, perché né lo split né il codice sul percorso di addestramento erano
+cambiati, mentre i tempi differiscono perché sono misure di esecuzione.
 
 Il campo `provenance.commit` di ogni file di metriche è il commit da cui l'esecuzione è partita, quindi
 precede il commit che aggiunge gli artefatti; `provenance.source_sha256` riporta gli sha256 dei file
