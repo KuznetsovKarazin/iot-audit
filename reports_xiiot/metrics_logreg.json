@@ -1,0 +1,357 @@
+{
+  "model": "logreg",
+  "provenance": {
+    "commit": "5156a154b77e228353c03de360da16cabbfd31b1",
+    "tree_clean": false,
+    "source_sha256": {
+      "src/iot_audit/xiiotid.py": "d0ade6d42f790b628661082b90f61da1d43c273ec14b4999dacd6d30cc854b25",
+      "scripts/train_xiiotid_baseline.py": "18f51421c90357cc5099e6b92b329fe0fb3af730f7309ae8da16bcd954f2e719",
+      "configs/xiiotid_severity_cost.json": "8554a444f989bfaa344dd55c7e0080acdbc374342cbd17d6b3f55599ef4f75bb"
+    },
+    "dataset_file": "X-IIoTID dataset.csv",
+    "seed": 42,
+    "dataset_sha256": "7b9290057ee42e784da3c0d84b781815502c9205c74175c96374e71a5ffd98a0",
+    "index_sha256": {
+      "train": "19e58a59e0523bd25b900d4f827bc41f7a68a7bd1cf154b46a650dd0aaae0771",
+      "validation": "0da40240b4c2ad2575bdd3d68e19b38d8ce82e117df562a61e363cd4756201e4",
+      "test": "31acb2ea12578f458937055fdcc2668d09f57dd9f6bd701f2f862b2ca092046f"
+    }
+  },
+  "configuration": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": 0.0,
+    "max_iter": 1000,
+    "penalty": "deprecated",
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "features_used": 54,
+  "scaled": true,
+  "host_resources_used": true,
+  "train_rows": 492604,
+  "validation_rows": 164104,
+  "test_rows": 164126,
+  "macro_f1_validation": 0.7982,
+  "recall_per_class_validation": {
+    "C&C": 0.9773,
+    "Exfiltration": 0.9916,
+    "Exploitation": 0.9163,
+    "Lateral _movement": 0.9593,
+    "Normal": 0.9373,
+    "RDOS": 0.9994,
+    "Reconnaissance": 0.8751,
+    "Tampering": 0.9893,
+    "Weaponization": 0.9698,
+    "crypto-ransomware": 0.9891
+  },
+  "macro_f1": 0.8157,
+  "balanced_accuracy": 0.9648,
+  "recall_per_class": {
+    "C&C": 0.9686,
+    "Exfiltration": 0.9862,
+    "Exploitation": 0.9559,
+    "Lateral _movement": 0.9683,
+    "Normal": 0.9364,
+    "RDOS": 1.0,
+    "Reconnaissance": 0.8672,
+    "Tampering": 0.9971,
+    "Weaponization": 0.9685,
+    "crypto-ransomware": 1.0
+  },
+  "support_per_class": {
+    "C&C": 573,
+    "Exfiltration": 4427,
+    "Exploitation": 227,
+    "Lateral _movement": 6319,
+    "Normal": 84283,
+    "RDOS": 28211,
+    "Reconnaissance": 25518,
+    "Tampering": 1024,
+    "Weaponization": 13452,
+    "crypto-ransomware": 92
+  },
+  "confusion_matrix": {
+    "labels": [
+      "C&C",
+      "Exfiltration",
+      "Exploitation",
+      "Lateral _movement",
+      "Normal",
+      "RDOS",
+      "Reconnaissance",
+      "Tampering",
+      "Weaponization",
+      "crypto-ransomware"
+    ],
+    "matrix": [
+      [
+        555,
+        0,
+        0,
+        0,
+        17,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        4366,
+        0,
+        3,
+        0,
+        0,
+        1,
+        0,
+        56,
+        0
+      ],
+      [
+        0,
+        0,
+        217,
+        0,
+        2,
+        0,
+        8,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        6,
+        68,
+        6119,
+        18,
+        0,
+        39,
+        67,
+        0,
+        0
+      ],
+      [
+        2792,
+        28,
+        363,
+        779,
+        78919,
+        89,
+        1153,
+        79,
+        37,
+        44
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        28211,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        70,
+        281,
+        5,
+        64,
+        2081,
+        1,
+        22128,
+        1,
+        887,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        2,
+        0,
+        0,
+        0,
+        1021,
+        0,
+        0
+      ],
+      [
+        0,
+        392,
+        0,
+        0,
+        3,
+        0,
+        29,
+        0,
+        13028,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        92
+      ]
+    ]
+  },
+  "confusion_matrix_validation": {
+    "labels": [
+      "C&C",
+      "Exfiltration",
+      "Exploitation",
+      "Lateral _movement",
+      "Normal",
+      "RDOS",
+      "Reconnaissance",
+      "Tampering",
+      "Weaponization",
+      "crypto-ransomware"
+    ],
+    "matrix": [
+      [
+        560,
+        0,
+        0,
+        0,
+        13,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        4390,
+        1,
+        3,
+        0,
+        0,
+        0,
+        0,
+        33,
+        0
+      ],
+      [
+        0,
+        0,
+        208,
+        1,
+        3,
+        0,
+        14,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        104,
+        6062,
+        29,
+        0,
+        43,
+        81,
+        0,
+        0
+      ],
+      [
+        2682,
+        13,
+        428,
+        792,
+        79003,
+        85,
+        1076,
+        100,
+        50,
+        55
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        9,
+        28171,
+        7,
+        0,
+        0,
+        0
+      ],
+      [
+        56,
+        152,
+        270,
+        132,
+        2107,
+        2,
+        22330,
+        0,
+        469,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        11,
+        0,
+        0,
+        0,
+        1014,
+        0,
+        0
+      ],
+      [
+        0,
+        363,
+        0,
+        0,
+        5,
+        0,
+        38,
+        0,
+        13046,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        91
+      ]
+    ]
+  },
+  "cost": {
+    "missed_attack_cost": 4723,
+    "false_alarm_cost": 9538,
+    "mistriaged_attacks_not_weighted": 1985
+  },
+  "train_seconds": 79.7
+}

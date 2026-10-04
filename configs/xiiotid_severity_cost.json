@@ -1,0 +1,72 @@
+{
+  "_note": "Scenario hypothesis, not an empirical measure of damage. severity 1-5; cost_fn is charged when an attack of that class is classified as Normal, cost_fp when normal traffic is classified as that class, so both columns are applied per class by expected_cost(). Attack-to-attack confusions are counted, not weighted. Class names match class2 in the X-IIoTID dataset, including the space in 'Lateral _movement'.",
+  "scale": {
+    "1": "negligible",
+    "2": "low",
+    "3": "moderate",
+    "4": "high",
+    "5": "critical"
+  },
+  "classes": {
+    "Normal": {
+      "severity": 0,
+      "cost_fn": 0,
+      "cost_fp": 1,
+      "rationale": "no attack; only the cost of an unnecessary alert"
+    },
+    "Reconnaissance": {
+      "severity": 1,
+      "cost_fn": 2,
+      "cost_fp": 1,
+      "rationale": "scanning and discovery, no direct damage"
+    },
+    "Weaponization": {
+      "severity": 2,
+      "cost_fn": 4,
+      "cost_fp": 1,
+      "rationale": "preparation stage, precedes the damage"
+    },
+    "Exploitation": {
+      "severity": 4,
+      "cost_fn": 12,
+      "cost_fp": 2,
+      "rationale": "compromise in progress"
+    },
+    "Lateral _movement": {
+      "severity": 4,
+      "cost_fn": 15,
+      "cost_fp": 2,
+      "rationale": "spreads the compromise to other assets"
+    },
+    "C&C": {
+      "severity": 4,
+      "cost_fn": 15,
+      "cost_fp": 2,
+      "rationale": "persistent remote control of the asset"
+    },
+    "RDOS": {
+      "severity": 3,
+      "cost_fn": 8,
+      "cost_fp": 2,
+      "rationale": "hits availability of the industrial process"
+    },
+    "Tampering": {
+      "severity": 5,
+      "cost_fn": 20,
+      "cost_fp": 2,
+      "rationale": "integrity of the physical process, includes false data injection"
+    },
+    "Exfiltration": {
+      "severity": 5,
+      "cost_fn": 25,
+      "cost_fp": 2,
+      "rationale": "data loss, usually irreversible"
+    },
+    "crypto-ransomware": {
+      "severity": 5,
+      "cost_fn": 30,
+      "cost_fp": 2,
+      "rationale": "plant downtime plus data loss"
+    }
+  }
+}
