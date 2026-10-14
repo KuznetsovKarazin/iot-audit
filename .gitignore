@@ -25,3 +25,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# tabelle del checkpoint RISK-02
+!reports_risk02/*.csv

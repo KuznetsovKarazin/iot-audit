@@ -1,0 +1,11 @@
+{
+  "_note": "Selector declared before any test figure is read. C(lambda) = C_miss + lambda * C_false_alarm, lambda >= 0, where lambda scales the alarm side relative to the missed-attack side; lambda = 1 reproduces the accepted per-class weights of configs/xiiotid_severity_cost.json. Those weights are relative hypotheses, not measured monetary damage. Attack-to-attack confusions stay counted and unweighted.",
+  "lambda_grid": [0, 0.5, 1, 2, 5, 10, 20, 50, 100],
+  "selector": {
+    "fit_on": "validation",
+    "rule": "argmin of C(lambda) over the pool",
+    "pool": ["lgbm", "logreg", "rf", "xgb"],
+    "paired_controls": {"rf": "rf_no_host", "logreg": "logreg_no_host"},
+    "tie_break": "lowest C_miss, then variant name ascending"
+  }
+}
