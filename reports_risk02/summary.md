@@ -2,7 +2,7 @@
 
 Base: `f35be31` (upstream/main, PR #5 integrata). Nessun nuovo addestramento: tutto è ricostruito
 dalle matrici di confusione di validation e test dei sei JSON già accettati, che restano immutati.
-Gli sha256 dei sette input sono in [`inputs_sha256.csv`](inputs_sha256.csv).
+Gli sha256 degli otto input sono in [`inputs_sha256.csv`](inputs_sha256.csv).
 
 Comando: `python scripts/xiiotid_cost_regions.py`.
 
@@ -39,7 +39,9 @@ traffico `Normal`.
 C(λ) = C_miss + λ·C_falsi_allarmi, λ ≥ 0. λ pesa il lato degli allarmi rispetto a quello degli
 attacchi mancati, **a parità di pesi per classe** della configurazione accettata: λ = 1 riproduce
 esattamente quella configurazione. I pesi restano ipotesi relative, non danni monetari misurati.
-Ogni variante è una retta, il preferito è l'inviluppo inferiore. Intervalli in
+Ogni variante è una retta, il preferito è l'inviluppo inferiore. Nei punti di incrocio le varianti
+costano uguale: il confine appartiene all'intervallo che inizia lì, cioè alla variante con il costo
+di falsi allarmi più basso, quindi gli intervalli sono chiusi a sinistra e aperti a destra. Intervalli in
 [`choice_regions.csv`](choice_regions.csv), grafico in [`choice_regions.png`](choice_regions.png).
 
 | Parte | λ < soglia₁ | fra le soglie | λ > soglia₂ |
@@ -95,8 +97,11 @@ quello dell'algoritmo.
 Lo script termina con codice 1 se una verifica fallisce. Esito attuale, quattro PASS:
 costi ricalcolati uguali al blocco `cost` dei JSON accettati; mancati, falsi allarmi e confusioni fra
 attacchi che partizionano esattamente gli errori fuori diagonale; normalizzazione per 1.000 righe
-che usa le righe della propria parte; selettore che riceve le sole rette di validation e la cui
-scelta coincide con quella registrata nella tabella.
+che usa le righe della propria parte; e una prova che altera i soli dati di test, verificando che le
+rette di validation e tutte le scelte restino identiche mentre quelle di test cambiano. I casi limite
+dell'inviluppo — intercette uguali, più rette che si incrociano nello stesso punto, rette dominate — e
+un caso sintetico con conteggi noti per mancati, falsi allarmi, confusioni fra attacchi e
+normalizzazione sono in `tests/test_cost_regions.py`: `python -m pytest -q` dà 28 passed.
 
 ## 6. Cosa resiste al confronto, e cosa no
 

@@ -41,30 +41,45 @@ def summarise(matrix, labels, costs):
     }
 
 
+def lines_of(metrics, part, costs):
+    """The two coefficients of C(lambda) for one variant and one part."""
+    summary = summarise(metrics[PARTS[part]]["matrix"], metrics["confusion_matrix"]["labels"], costs)
+    return summary["missed_attack_cost"], summary["false_alarm_cost"]
+
+
 def envelope(lines, pool):
-    """Lower envelope of C(lambda) = a + b*lambda: list of (lambda_from, lambda_to, variant)."""
-    segments, start = [], 0.0
-    current = min(pool, key=lambda v: (lines[v][0], v))
-    while True:
-        nxt, cross = None, None
-        for v in pool:
-            a0, b0 = lines[current]
-            a1, b1 = lines[v]
-            if b1 >= b0:
-                continue
-            x = (a1 - a0) / (b0 - b1)
-            if x > start + 1e-9 and (cross is None or x < cross - 1e-9
-                                     or (abs(x - cross) < 1e-9 and v < nxt)):
-                nxt, cross = v, x
-        if nxt is None:
-            return segments + [(start, float("inf"), current)]
-        segments.append((start, cross, current))
-        start, current = cross, nxt
+    """Lower envelope of C(lambda) = a + b*lambda on lambda >= 0.
+
+    Returns segments [lambda_from, lambda_to) with the variant preferred inside each one.
+    Boundary rule: at a crossing the variants cost the same, and the boundary belongs to the
+    segment that starts there, that is to the variant with the smaller false-alarm cost;
+    variants equal in both coefficients are ordered by name. The same rule is used by
+    select(), so the tables and the regions never disagree. Lines are swept by decreasing
+    slope and a line is dropped as soon as it is above the envelope, so equal intercepts and
+    several lines crossing at one point are handled.
+    """
+    stack = []  # (slope, intercept, variant, lambda where it takes over)
+    for slope, intercept, v in sorted((-lines[v][1], lines[v][0], v) for v in pool):
+        slope = -slope
+        if stack and stack[-1][0] == slope:
+            continue  # same slope, intercept not lower: never cheaper
+        start = 0.0
+        while stack:
+            slope0, intercept0, _, start0 = stack[-1]
+            start = (intercept - intercept0) / (slope0 - slope)
+            if start <= start0:
+                stack.pop()
+                start = 0.0
+            else:
+                break
+        stack.append((slope, intercept, v, start))
+    return [(start, stack[i + 1][3] if i + 1 < len(stack) else float("inf"), v)
+            for i, (_, _, v, start) in enumerate(stack)]
 
 
 def select(lines, pool, lam):
-    """Selector: cheapest variant at lambda. Reads one part only, never two."""
-    return min(pool, key=lambda v: (lines[v][0] + lam * lines[v][1], lines[v][0], v))
+    """Selector: cheapest variant at lambda; ties go to the smaller false-alarm cost, then name."""
+    return min(pool, key=lambda v: (lines[v][0] + lam * lines[v][1], lines[v][1], v))
 
 
 def write_csv(path, rows, header):
@@ -150,6 +165,12 @@ def main():
 
     figure(regions, val, test, config, os.path.join(args.outdir, "choice_regions.png"))
 
+    # same metrics with the test matrices altered and validation untouched
+    tampered = {v: {**m, "confusion_matrix": {"labels": m["confusion_matrix"]["labels"],
+                                              "matrix": [[c * 3 + 5 for c in row]
+                                                         for row in m["confusion_matrix"]["matrix"]]}}
+                for v, m in metrics.items()}
+
     checks = {
         "recomputed costs equal the accepted metrics":
             all(counts[(v, "test")]["missed_attack_cost"] == m["cost"]["missed_attack_cost"]
@@ -165,10 +186,11 @@ def main():
         "per-1000-row normalisation uses the rows of its own part":
             all(counts[(v, part)]["rows"] == metrics[v][f"{'validation' if part == 'validation' else 'test'}_rows"]
                 for v in VARIANTS for part in PARTS),
-        "the selector does not depend on test data":
-            all(select(val, pool, lam) == select({v: val[v] for v in pool}, pool, lam)
-                and select({v: (0, 0) for v in pool}, pool, lam) != "" for lam in config["lambda_grid"])
-            and all(row[1] == select(val, pool, row[0]) for row in selector_rows),
+        "changing only the test data leaves every choice on validation unchanged":
+            {v: lines_of(tampered[v], "validation", costs) for v in pool} == val
+            and {v: lines_of(tampered[v], "test", costs) for v in pool} != test
+            and all(row[1] == select({v: lines_of(tampered[v], "validation", costs) for v in pool},
+                                     pool, row[0]) for row in selector_rows),
     }
     for name, ok in checks.items():
         print(f"{'PASS' if ok else 'ERROR'} [risk02] {name}")
