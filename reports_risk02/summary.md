@@ -53,10 +53,10 @@ di falsi allarmi più basso, quindi gli intervalli sono chiusi a sinistra e aper
 
 ## 3. Selettore fissato sulla validation
 
-Regola dichiarata in [`configs/xiiotid_lambda.json`](../configs/xiiotid_lambda.json) prima di
-leggere qualunque cifra di test: minimo di C(λ) sul pool dei quattro modelli host, pareggi risolti
-per C_miss crescente e poi per nome. Sul test la regola si applica invariata. Tabella completa in
-[`selector.csv`](selector.csv).
+Regola dichiarata in [`configs/xiiotid_lambda.json`](../configs/xiiotid_lambda.json): minimo di C(λ)
+sul pool dei quattro modelli host, pareggi risolti per C_false_alarm crescente e poi per nome. La
+scelta è calcolata esclusivamente sulla validation e applicata invariata al test, già esaminato nella
+baseline. Tabella completa in [`selector.csv`](selector.csv).
 
 | λ | Scelta su validation | Costo su test della scelta | Scelta per Macro-F1 di validation | Costo su test | Minimo sul test (solo diagnostico) |
 |---|---|---|---|---|---|
