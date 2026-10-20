@@ -1,0 +1,7 @@
+part,lambda_from,lambda_to,preferred_variant,C_miss,C_false_alarm
+validation,0.0,9.7547,lgbm,2530,228
+validation,9.7547,50.7727,xgb,3047,175
+validation,50.7727,inf,rf,5281,131
+test,0.0,6.9459,lgbm,2606,188
+test,6.9459,45.7059,xgb,2863,151
+test,45.7059,inf,rf,4417,117

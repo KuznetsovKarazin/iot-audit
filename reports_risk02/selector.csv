@@ -1,0 +1,10 @@
+lambda,selected_on_validation,validation_cost_of_selection,test_cost_of_selection,selected_by_validation_macro_f1,test_cost_of_macro_f1_selection,test_optimal_diagnostic_only,test_cost_of_diagnostic_optimum
+0,lgbm,2530,2606,xgb,2863,lgbm,2606
+0.5,lgbm,2644.0,2700.0,xgb,2938.5,lgbm,2700.0
+1,lgbm,2758,2794,xgb,3014,lgbm,2794
+2,lgbm,2986,2982,xgb,3165,lgbm,2982
+5,lgbm,3670,3546,xgb,3618,lgbm,3546
+10,xgb,4797,4373,xgb,4373,xgb,4373
+20,xgb,6547,5883,xgb,5883,xgb,5883
+50,xgb,11797,10413,xgb,10413,rf,10267
+100,rf,18381,16117,xgb,17963,rf,16117
