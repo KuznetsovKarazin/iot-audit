@@ -1,0 +1,30 @@
+{
+  "base_commit": "a0eb070a266698e76adbbe557371628b85291c99",
+  "analysis_commit": "43418838adc8635fb257998c49ede7214f298f20",
+  "analysis_files_clean": true,
+  "python": "3.14.7",
+  "matplotlib": "3.11.2",
+  "new_fits": 0,
+  "new_inferences": 0,
+  "inputs_sha256": {
+    "reports_xiiot/metrics_lgbm.json": "fd5130fb500b50d56748c5fb4c6b60eed6444291539646f015b31f29d0b00207",
+    "reports_xiiot/metrics_xgb.json": "3cf2a2b92e79c730d3b2d5d53020859432ef1453b12f85f89087a33820754cdf",
+    "reports_xiiot/metrics_rf.json": "7f823fedd33fbeee204878a98204fd711e4f274e7ff9ac5e687d333735ccefbd",
+    "reports_xiiot/metrics_logreg.json": "481eaf08ef06e7281c455f5ee95ca1fc695367f936a2de1c8b0ffcb0c807501c",
+    "configs/xiiotid_severity_cost.json": "8554a444f989bfaa344dd55c7e0080acdbc374342cbd17d6b3f55599ef4f75bb"
+  },
+  "protocol_sha256": {
+    "configs/xiiotid_cost_robustness.json": "6196714574b1990a3db0d5aebc2a972794f258ba13517658d6e24598530eeaad"
+  },
+  "code_sha256": {
+    "scripts/xiiotid_cost_robustness.py": "d57ed9d468156a018e8651546ead593e4a7c4958da7431803ae193a5dba04c6b",
+    "tests/test_cost_robustness.py": "eb3cd1c7f3a13c3cbe0465bb18d843a825b7cb367649dc110a3cfdfbe9ebf2c4"
+  },
+  "outputs_sha256": {
+    "counts.csv": "28a94b30a74678ea860012364d276896a9694875ed036755f9b38cc552af3fb1",
+    "minimax_regret.csv": "405f19c275bf4c9b2e2854da98912ad1136305993f912e886e5424bf269bcafd",
+    "pairwise.csv": "711702080d1b4f96dce208b23e21d7d235b11502dd6db77d25fbf5a63cedf171",
+    "regret_frontier.png": "435f8cd0c6c389bd7d9459d24d0229508a04338f590c73c85366bc2b18232f35",
+    "summary.md": "384b8375efcd407d4b8451acf5dec8eefa0ec407d219ae58541743a074d180fc"
+  }
+}
