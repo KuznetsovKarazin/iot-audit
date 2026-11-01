@@ -1,0 +1,31 @@
+{
+  "_note": "Protocol fixed before any robustness computation. Scenario hypothesis, not a probability distribution, a damage estimate or a confidence interval. lambda = 1, so the cost is C(w) = sum_i w_i e_i over 18 components: e_i counts attacks of class c classified as Normal (weight cost_fn of c) and Normal traffic classified as class c (weight cost_fp of c), for the 9 attack classes. Attack-to-attack confusions stay counted and unweighted. Each weight moves independently in [(1 - delta) w0_i, (1 + delta) w0_i]; independent moves can change the order of the costs between classes, and that limit is declared, not removed.",
+  "base_commit": "a0eb070a266698e76adbbe557371628b85291c99",
+  "lambda": 1,
+  "delta_range": [0, 1],
+  "weights": "configs/xiiotid_severity_cost.json",
+  "components": "fn:<class> = cost_fn, fp:<class> = cost_fp, for every class except Normal, in label order",
+  "pool": ["lgbm", "xgb", "rf", "logreg"],
+  "fit_on": "validation",
+  "pairwise": {
+    "worst_case": "max_w w.(e_m - e_k) = w0.(e_m - e_k) + delta * sum_i w0_i |e_mi - e_ki|",
+    "not_costlier": "worst case <= 0",
+    "strictly_better": "worst case < 0",
+    "radius": "-(w0.d) / sum_i w0_i |d_i| when w0.d <= 0 and the denominator is positive; m is not costlier than k for every delta <= radius and strictly better for every delta < radius; denominator zero means equal cost for every w; w0.d > 0 means no radius",
+    "extreme_vector": "w_i = w0_i (1 + delta * sign(d_i)), d_i = 0 left at w0_i"
+  },
+  "selection": {
+    "rule": "argmin over the pool of the maximum regret R_m(delta) = max(0, max_k [w0.(e_m - e_k) + delta * sum_i w0_i |e_mi - e_ki|]), computed exactly in rational arithmetic on delta_range",
+    "tie_break": ["lowest nominal validation cost at lambda = 1", "highest macro_f1_validation", "fixed order lgbm, xgb, rf, logreg"],
+    "compared_with": ["nominal choice: argmin of the validation cost at lambda = 1, same tie-break", "macro-F1 choice: argmax of macro_f1_validation, ties in the fixed order"]
+  },
+  "test": "already examined in the baseline: computed after the selection, descriptive and retrospective only; it never enters the selection, the hypotheses or the tie-break",
+  "inputs_sha256": {
+    "reports_xiiot/metrics_lgbm.json": "fd5130fb500b50d56748c5fb4c6b60eed6444291539646f015b31f29d0b00207",
+    "reports_xiiot/metrics_xgb.json": "3cf2a2b92e79c730d3b2d5d53020859432ef1453b12f85f89087a33820754cdf",
+    "reports_xiiot/metrics_rf.json": "7f823fedd33fbeee204878a98204fd711e4f274e7ff9ac5e687d333735ccefbd",
+    "reports_xiiot/metrics_logreg.json": "481eaf08ef06e7281c455f5ee95ca1fc695367f936a2de1c8b0ffcb0c807501c",
+    "configs/xiiotid_severity_cost.json": "8554a444f989bfaa344dd55c7e0080acdbc374342cbd17d6b3f55599ef4f75bb"
+  },
+  "labels": ["C&C", "Exfiltration", "Exploitation", "Lateral _movement", "Normal", "RDOS", "Reconnaissance", "Tampering", "Weaponization", "crypto-ransomware"]
+}
