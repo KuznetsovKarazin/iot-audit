@@ -28,11 +28,18 @@ def load(path):
 
 
 def align(labels, matrix, order):
-    """Rows and columns in the order of `order`, matched by name, never by position."""
+    """Rows and columns in the order of `order`, matched by name, never by position. Every
+    entry must be a non-negative int: booleans, floats, non-finite values and the rest stop."""
     if sorted(labels) != sorted(order):
         raise InputError(f"labels differ from the contract: {labels}")
     if len(matrix) != len(labels) or any(len(row) != len(labels) for row in matrix):
         raise InputError("the matrix is not square in the number of labels")
+    bad = [(labels[i], labels[j], x) for i, row in enumerate(matrix) for j, x in enumerate(row)
+           if type(x) is not int or x < 0]
+    if bad:
+        i, j, x = bad[0]
+        more = f" ({len(bad) - 1} more)" if len(bad) > 1 else ""
+        raise InputError(f"entry [{i}, {j}] = {x!r} is not a non-negative integer count{more}")
     at = [labels.index(c) for c in order]
     return [[matrix[i][j] for j in at] for i in at]
 
@@ -90,10 +97,17 @@ def decide(w0, vectors, f1, order, deltas, selection="validation"):
             "frontier": {p: regret_intervals(w0, v, keys) for p, v in vectors.items()}}
 
 
-def scenario(ds, matrices, pi, lam, protocol):
-    """One (pi, lambda) scenario of protocol v1, on the mean over seeds, never the best seed."""
+def scenario(ds, matrices, pi, lam, protocol, pool=None):
+    """One (pi, lambda) scenario of protocol v1, on the mean over seeds, never the best seed.
+    Only the models of `pool`, by default the main pool of the contract, enter q, the choices,
+    the margins, the frontiers and the regret; every other matrix is left out."""
     labels, benign, seeds = ds["labels"], ds["benign"], ds["seeds"]
-    sel = ds["parts"]["selection"]
+    sel, pool = ds["parts"]["selection"], pool or ds["pool"]
+    absent = [(m, s, p) for m in pool for s in seeds for p in ds["parts"].values()
+              if (m, s, p) not in matrices]
+    if absent:
+        raise InputError(f"missing records of the pool: {absent}")
+    matrices = {key: mat for key, mat in matrices.items() if key[0] in pool}
     err = {key: errors(mat, labels, benign) for key, mat in matrices.items()}
     mixes = {tuple(e["support"]) for (_, _, p), e in err.items() if p == sel}
     if len(mixes) != 1:
@@ -112,15 +126,17 @@ def scenario(ds, matrices, pi, lam, protocol):
 
 def read_inputs(ds):
     """The declared matrices of one dataset, checked against the contract: pinned sha256,
-    labels matched by name, no zero support, same supports for every model of a part and seed.
-    Returns the matrices, the issues and the expected records not yet available."""
+    labels matched by name, integer counts, no zero support, same supports for every model of a
+    part and seed. Returns the matrices, the issues and the records not yet available: required
+    for the main pool, optional for the supplementary models, whose absence blocks nothing."""
     parts = list(ds["parts"].values())
-    expected = [(m, s, p) for m in ds["pool"] + ds["supplementary"] for s in ds["seeds"]
-                for p in parts]
+    expected = {kind: [(m, s, p) for m in ds[models] for s in ds["seeds"] for p in parts]
+                for kind, models in (("required", "pool"), ("optional", "supplementary"))}
     declared = {(e["model"], e["seed"], e["part"]): e for e in ds["records"]}
-    missing = [k for k in expected if k not in declared or not os.path.exists(declared[k]["path"])]
+    absent = lambda k: k not in declared or not os.path.exists(declared[k]["path"])
+    missing = {kind: [k for k in keys if absent(k)] for kind, keys in expected.items()}
     matrices, issues = {}, []
-    for key in [k for k in expected if k not in missing]:
+    for key in [k for keys in expected.values() for k in keys if not absent(k)]:
         e = declared[key]
         if sha256(e["path"]) != e["sha256"]:
             issues.append(f"{ds['name']} {key}: sha256 differs from the contract")
@@ -177,12 +193,14 @@ def main():
     for ds in load(load(args.protocol)["inputs"])["datasets"].values():
         matrices, issues, missing = read_inputs(ds)
         print(f"{ds['name']}: {len(matrices)} records read, {len(issues)} issues, "
-              f"{len(missing)} missing")
+              f"{len(missing['required'])} required missing (main pool), "
+              f"{len(missing['optional'])} optional missing (supplementary)")
         for issue in issues:
             print(f"ERROR {issue}")
-        for m in dict.fromkeys(k[0] for k in missing):
-            seeds = ", ".join(f"{p} {s}" for m2, s, p in missing if m2 == m)
-            print(f"MISSING {ds['name']} {m}: {seeds}")
+        for kind, keys in missing.items():
+            for m in dict.fromkeys(k[0] for k in keys):
+                seeds = ", ".join(f"{p} {s}" for m2, s, p in keys if m2 == m)
+                print(f"MISSING {kind} {ds['name']} {m}: {seeds}")
         status |= bool(issues)
     return status
 

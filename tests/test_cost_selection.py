@@ -1,5 +1,5 @@
 """Checks for scripts/cost_selection.py: RISK-03 regression on the accepted matrices, and
-synthetic cases for 34 classes, label order, supports, ties and normalisation."""
+synthetic cases for 34 classes, pools, label order, counts, supports, ties and normalisation."""
 import json
 import os
 import random
@@ -68,6 +68,33 @@ def test_34_classes_in_the_nine_scenarios():
         for rows in r["frontier"].values():  # exact partition of [0, 1]
             assert (rows[0]["lo"], rows[-1]["hi"]) == (0, 1)
             assert all(x["hi"] == y["lo"] for x, y in zip(rows, rows[1:]))
+
+
+def test_a_dominant_supplementary_model_leaves_the_main_pool_unchanged():
+    matrices, ds = synthetic_34(), dataset(LABELS_34, SEEDS, supplementary=["logreg"])
+    perfect = {("logreg", s, p): [[sum(row) * (i == j) for j in range(34)]
+                                  for i, row in enumerate(matrices["lgbm", s, p])]
+               for s, p in product(SEEDS, ("validation", "test"))}  # no error, Macro-F1 = 1
+    for pi, lam in product(PROTOCOL["scenarios"]["pi"], PROTOCOL["scenarios"]["lambda"]):
+        pi, lam = Fraction(pi), Fraction(lam)
+        main = scenario(ds, matrices, pi, lam, PROTOCOL)
+        assert scenario(ds, {**matrices, **perfect}, pi, lam, PROTOCOL) == main
+        wider = scenario(ds, {**matrices, **perfect}, pi, lam, PROTOCOL,
+                         ds["pool"] + ds["supplementary"])
+        assert {*wider["choice"].values(), *wider["minimax"].values()} == {"logreg"}
+    del matrices["rf", 303, "test"]
+    with pytest.raises(InputError, match="missing records of the pool"):
+        scenario(ds, {**matrices, **perfect}, pi, lam, PROTOCOL)
+
+
+def test_every_entry_must_be_a_non_negative_integer_count():
+    labels, good = ["Benign", "Scan", "Flood"], [[50, 1, 2], [3, 20, 0], [1, 0, 30]]
+    assert align(labels, good, labels) == good
+    for bad in (-1, True, False, 2.5, 4.0, float("nan"), float("inf"), None, "3"):
+        mat = [row[:] for row in good]
+        mat[1][2] = bad
+        with pytest.raises(InputError, match=r"entry \[Scan, Flood\] = .* is not a non-negative"):
+            align(labels, mat, labels)
 
 
 def test_label_order_is_matched_by_name_and_wrong_labels_stop():
@@ -148,9 +175,15 @@ def test_read_inputs_checks_hash_labels_and_supports(tmp_path):
         path = write(f"{m}_{p}.json", labels[::-1], stored)
         ds["records"].append({"model": m, "seed": 1, "part": p, "path": path,
                               "sha256": sha256(path)})
-    assert read_inputs(ds) == (matrices, [], [("kan", 1, "validation"), ("kan", 1, "test")])
+    found, issues, missing = read_inputs(ds)
+    assert (found, issues) == (matrices, [])
+    assert missing == {"required": [], "optional": [("kan", 1, "validation"), ("kan", 1, "test")]}
+    scenario(ds, found, Fraction(1, 100), 10, PROTOCOL)  # no KAN: the main comparison still runs
 
     record = {(e["model"], e["part"]): e for e in ds["records"]}
+    nan = [row[:] for row in matrices["rf", 1, "validation"]]
+    nan[2][1] = float("nan")
+    record["rf", "validation"]["sha256"] = sha256(write("rf_validation.json", labels, nan))
     changed = [row[:] for row in matrices["rf", 1, "test"]]
     changed[1][1] += 1
     write("rf_test.json", labels, changed)  # hash left as pinned
@@ -158,7 +191,11 @@ def test_read_inputs_checks_hash_labels_and_supports(tmp_path):
     renamed = write("lgbm_validation.json", labels[:3] + ["Exfil_"],
                     matrices["lgbm", 1, "validation"])
     record["lgbm", "validation"]["sha256"] = sha256(renamed)
-    issues = "\n".join(read_inputs(ds)[1])
+    found, issues, _ = read_inputs(ds)
+    assert ("rf", 1, "validation") not in found
+    issues = "\n".join(issues)
+    assert ("synthetic ('rf', 1, 'validation'): entry [Flood, Scan] = nan is not a non-negative"
+            " integer count") in issues
     assert "('rf', 1, 'test'): sha256 differs from the contract" in issues
     assert "seed 1 test: supports differ between models" in issues
     assert "('lgbm', 1, 'validation'): labels differ from the contract" in issues
@@ -168,6 +205,9 @@ def test_declared_contract(monkeypatch):
     monkeypatch.chdir(ROOT)
     datasets = load(PROTOCOL["inputs"])["datasets"]
     found, issues, missing = read_inputs(datasets["xiiotid"])
-    assert (len(found), issues, missing) == (8, [], [])
+    assert (len(found), issues, missing) == (8, [], {"required": [], "optional": []})
     found, issues, missing = read_inputs(datasets["ciciot2023"])
-    assert (found, issues, len(missing)) == ({}, [], 4 * 5 * 2)
+    assert (found, issues) == ({}, [])
+    assert {k: {m for m, _, _ in v} for k, v in missing.items()} == {
+        "required": {"lgbm", "xgb", "rf"}, "optional": {"kan"}}
+    assert (len(missing["required"]), len(missing["optional"])) == (3 * 5 * 2, 5 * 2)
