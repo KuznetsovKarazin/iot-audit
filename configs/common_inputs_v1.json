@@ -1,0 +1,49 @@
+{
+  "_note": "Input contract of the common protocol v1. A record is one confusion matrix of one model, part and seed: rows are the true class, columns the predicted class, integer counts, with the label list stored next to the matrix. Labels are matched by name, never by position. Every record carries the sha256 of its file, pinned here before any computation; a record with a missing file, an unpinned or different hash, a different label set, a zero support or supports that differ between models of the same part and seed stops the analysis. Declaring new records (for CICIoT2023) changes this file, not the protocol, and goes in its own commit before the run.",
+  "version": 1,
+  "protocol": "configs/common_protocol_v1.json",
+  "delivery": {
+    "file": "one JSON per record, or a metrics JSON holding it under 'key'",
+    "fields": {
+      "labels": "list of the class names, in the order of rows and columns",
+      "matrix": "square list of lists of non-negative integers, rows = true class, columns = predicted class"
+    },
+    "provenance": "alongside, not read by the analysis: dataset sha256, split index sha256, checkpoint sha256, commit, seed",
+    "not_accepted": "normalised matrices, matrices summed over seeds, matrices of new fits"
+  },
+  "datasets": {
+    "xiiotid": {
+      "name": "X-IIoTID",
+      "benign": "Normal",
+      "labels": ["C&C", "Exfiltration", "Exploitation", "Lateral _movement", "Normal", "RDOS",
+                 "Reconnaissance", "Tampering", "Weaponization", "crypto-ransomware"],
+      "n_classes": 10,
+      "pool": ["lgbm", "xgb", "rf"],
+      "supplementary": ["logreg"],
+      "seeds": [42],
+      "parts": {"selection": "validation", "control": "test"},
+      "records": [
+        {"model": "lgbm", "seed": 42, "part": "validation", "path": "reports_xiiot/metrics_lgbm.json", "key": "confusion_matrix_validation", "sha256": "fd5130fb500b50d56748c5fb4c6b60eed6444291539646f015b31f29d0b00207"},
+        {"model": "lgbm", "seed": 42, "part": "test", "path": "reports_xiiot/metrics_lgbm.json", "key": "confusion_matrix", "sha256": "fd5130fb500b50d56748c5fb4c6b60eed6444291539646f015b31f29d0b00207"},
+        {"model": "xgb", "seed": 42, "part": "validation", "path": "reports_xiiot/metrics_xgb.json", "key": "confusion_matrix_validation", "sha256": "3cf2a2b92e79c730d3b2d5d53020859432ef1453b12f85f89087a33820754cdf"},
+        {"model": "xgb", "seed": 42, "part": "test", "path": "reports_xiiot/metrics_xgb.json", "key": "confusion_matrix", "sha256": "3cf2a2b92e79c730d3b2d5d53020859432ef1453b12f85f89087a33820754cdf"},
+        {"model": "rf", "seed": 42, "part": "validation", "path": "reports_xiiot/metrics_rf.json", "key": "confusion_matrix_validation", "sha256": "7f823fedd33fbeee204878a98204fd711e4f274e7ff9ac5e687d333735ccefbd"},
+        {"model": "rf", "seed": 42, "part": "test", "path": "reports_xiiot/metrics_rf.json", "key": "confusion_matrix", "sha256": "7f823fedd33fbeee204878a98204fd711e4f274e7ff9ac5e687d333735ccefbd"},
+        {"model": "logreg", "seed": 42, "part": "validation", "path": "reports_xiiot/metrics_logreg.json", "key": "confusion_matrix_validation", "sha256": "481eaf08ef06e7281c455f5ee95ca1fc695367f936a2de1c8b0ffcb0c807501c"},
+        {"model": "logreg", "seed": 42, "part": "test", "path": "reports_xiiot/metrics_logreg.json", "key": "confusion_matrix", "sha256": "481eaf08ef06e7281c455f5ee95ca1fc695367f936a2de1c8b0ffcb0c807501c"}
+      ]
+    },
+    "ciciot2023": {
+      "name": "CICIoT2023",
+      "_note": "Artefacts not yet delivered (card NUNZIO CIC-RISK-01). The 34 labels and their order are fixed from the delivered records, after checking them against the label encoder of the frozen checkpoints; the benign name is the expected one and is confirmed at that point.",
+      "benign": "BenignTraffic",
+      "labels": null,
+      "n_classes": 34,
+      "pool": ["lgbm", "xgb", "rf"],
+      "supplementary": ["kan"],
+      "seeds": [101, 202, 303, 404, 505],
+      "parts": {"selection": "validation", "control": "test"},
+      "records": []
+    }
+  }
+}
