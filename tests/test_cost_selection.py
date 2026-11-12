@@ -13,7 +13,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from cost_selection import (  # noqa: E402
-    InputError, align, decide, errors, load, rate_vector, read_inputs, risk03_checks, scenario)
+    InputError, align, decide, errors, load, rate_vector, read_inputs, risk03_checks, run,
+    scenario)
 from xiiotid_cost_regions import sha256  # noqa: E402
 from xiiotid_cost_robustness import cost  # noqa: E402
 
@@ -95,6 +96,21 @@ def test_every_entry_must_be_a_non_negative_integer_count():
         mat[1][2] = bad
         with pytest.raises(InputError, match=r"entry \[Scan, Flood\] = .* is not a non-negative"):
             align(labels, mat, labels)
+
+
+def test_tables_cover_the_protocol_and_ignore_changes_to_the_test_part():
+    """Nine scenarios x four deltas x three policies, for the mean and each of five seeds;
+    changing only the test matrices leaves every validation column unchanged."""
+    matrices, ds = synthetic_34(), dataset(LABELS_34, SEEDS)
+    tables = run(ds, matrices, PROTOCOL)
+    choices = tables["choices.csv"][1]
+    assert len(choices) == 9 * 4 * 3 * (1 + 5)
+    assert len(tables["normalized_counts.csv"][1]) == 3 * 5 * 2 * 33
+    swap = {"lgbm": "rf", "rf": "lgbm"}
+    altered = run(ds, {(m, s, p): matrices[swap.get(m, m), s, p] if p == "test" else mat
+                       for (m, s, p), mat in matrices.items()}, PROTOCOL)["choices.csv"][1]
+    assert [row[:11] for row in altered] == [row[:11] for row in choices]  # up to validation regret
+    assert altered != choices
 
 
 def test_label_order_is_matched_by_name_and_wrong_labels_stop():
