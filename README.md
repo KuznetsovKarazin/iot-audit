@@ -148,6 +148,23 @@ reports_mc/
     summary_models_mc.csv, per_class_report_merged.csv, accuracy.png, macro_f1.png, ...
 ```
 
+## Common cost-sensitive selection protocol
+
+Compares the choice of the IDS by Macro-F1, nominal cost and minimax regret on existing
+confusion matrices (protocol v1 in `configs/common_protocol_v1.json`, inputs in
+`configs/common_inputs_v1.json`). No training and no inference. X-IIoTID is complete;
+CICIoT2023 waits for its Validation/Test matrices.
+
+```bash
+python scripts/cost_selection.py                    # input inventory (required / optional)
+python scripts/cost_selection.py --risk03           # RISK-03 through the generic path
+python scripts/cost_selection.py --dataset xiiotid  # tables and manifest in reports_common/xiiotid/
+python scripts/cost_selection_figures.py            # the three figures in reports_common/figures/
+python -m pytest tests/test_cost_selection.py tests/test_cost_robustness.py tests/test_cost_regions.py -q
+```
+
+Summary note: `reports_common/note.md`.
+
 ## Reproducibility & Notes
 - Stratified split (80/20).
 - Known leakage columns are dropped (e.g., `type` in binary task).
