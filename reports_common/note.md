@@ -66,18 +66,21 @@ più di nessun altro modello, per qualunque combinazione di pesi; i valori esatt
 [stabilità](figures/stability.png), [errori per classe](figures/errors_by_class.png).
 
 **Quando divergono le scelte.** Il Macro-F1 sceglie sempre xgb (0,9346 contro 0,9332 di lgbm e
-0,9309 di rf). Le due politiche di costo se ne allontanano in sei scenari su nove: scelgono rf
-quando pesano di più i falsi allarmi (r ≤ 0,01), lgbm quando pesano di più gli attacchi mancati
-(r ≥ 1), e tornano a xgb solo nella fascia intermedia (r ≈ 0,1). Su Validation le soglie sono
-r = 0,052 fra rf e xgb e r = 0,447 fra xgb e lgbm. Il minimax regret coincide con la scelta nominale
-in tutti e nove gli scenari e per ogni δ in [0, 1]: non cambia mai modello, aggiunge soltanto il
-limite al rimpianto peggiore.
+0,9309 di rf). Le due politiche di costo se ne allontanano in sei dei nove scenari esaminati:
+scelgono rf nei tre scenari con r ≈ 0,001–0,010, dove pesano di più i falsi allarmi, lgbm nei tre
+con r ≈ 1,01–11,1, dove pesano di più gli attacchi mancati, e xgb nei tre intermedi
+(r ≈ 0,100–0,111). Le frontiere nominali su Validation, con r = λπ/(1 − π) e il tie-break del
+protocollo, sono r ≈ 0,051845048 fra rf e xgb e r ≈ 0,447689845 fra xgb e lgbm. Valgono per il
+costo nominale e non si estendono automaticamente al minimax fuori dai casi analizzati. Nei nove
+scenari esaminati il minimax regret coincide con la scelta nominale per ogni δ in [0, 1]: non cambia
+mai modello, aggiunge soltanto il limite al rimpianto peggiore.
 
 **Quanto sono stabili.** Il raggio della scelta nominale va da 0,19 a 0,80. È più piccolo quando la
 scelta è xgb (0,19–0,23), perché lì rf le resta vicino, ed è massimo a r = 11,1. Oltre il raggio
 esistono combinazioni di pesi che rendono più economico un altro modello, ma il modello scelto
-mantiene il regret massimo più basso fino a δ = 1. Anche la frontiera retrospettiva sul Test è
-costante su tutto [0, 1] in ogni scenario: rf per r ≤ 0,01, xgb negli altri sei.
+mantiene il regret massimo più basso fino a δ = 1. Anche sul Test, in ciascuno dei nove
+scenari, il modello a minimo regret retrospettivo resta lo stesso su tutto [0, 1]: rf nei tre
+scenari con r ≈ 0,001–0,010, xgb negli altri sei.
 
 **Controllo retrospettivo sul Test.** Dove la scelta di costo è rf, rf resta il migliore anche sul
 Test e xgb costerebbe il 16–21% in più (per esempio 135,8 contro 112,4 per 100.000 osservazioni a
@@ -100,14 +103,15 @@ fra attacchi, fuori dal costo, sono più numerose per lgbm: 640 contro 586 (xgb)
 Validation, 180 contro 89 e 95 sul Test, quasi tutte in Reconnaissance.
 
 **Pool supplementare e seed.** Con logreg nel pool le scelte non cambiano: logreg non è mai scelta e
-aumenta solo il regret massimo a δ = 1 negli scenari con r ≥ 1. X-IIoTID ha un solo seed, quindi non
+aumenta solo il regret massimo a δ = 1 nei tre scenari con r ≈ 1,01–11,1. X-IIoTID ha un solo seed, quindi non
 c'è dispersione da riportare: le righe per seed di [`choices.csv`](xiiotid/choices.csv) coincidono
 con quelle della media.
 
 ## 4. CICIoT2023
 
-Non ancora analizzato. Il contratto degli input richiede 40 matrici: rf, xgb e lgbm, più kan se
-disponibile, per i seed 101, 202, 303, 404 e 505, su Validation e Test, con le 34 etichette nel loro
+Non ancora analizzato. Il contratto degli input distingue 30 matrici obbligatorie, rf, xgb e lgbm
+per i seed 101, 202, 303, 404 e 505 su Validation e Test, da 10 matrici kan opzionali per gli stessi
+seed e split: l'assenza di kan non blocca il confronto principale. Servono le 34 etichette nel loro
 ordine e la conferma del nome della classe benigna. All'arrivo si dichiarano i file con il loro hash
 in `configs/common_inputs_v1.json` e si rieseguono gli stessi comandi, senza cambiare il protocollo.
 Se i seed cambiano anche lo split, i supporti Validation differiscono e q non è unico: va
