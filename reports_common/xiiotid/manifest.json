@@ -1,0 +1,30 @@
+{
+  "dataset": "X-IIoTID",
+  "base_commit": "32174928ca0326bd9c5cfbc011b954b921bc4e51",
+  "analysis_commit": "b5e9e9a3ffca965db32b67a7c07de022b2f2c273",
+  "analysis_files_clean": true,
+  "python": "3.14.7",
+  "new_fits": 0,
+  "new_inferences": 0,
+  "protocol_sha256": {
+    "configs/common_protocol_v1.json": "44aabc06d9073fc26869e31f61f5e7c2d213b6584b0bd2b3d20ef10122ad5672",
+    "configs/common_inputs_v1.json": "b6936ada574d99ab1dde90b0f1dd0c5e10ce507e6c5047bcc182bcbcd747bb4e"
+  },
+  "inputs_sha256": {
+    "reports_xiiot/metrics_lgbm.json": "fd5130fb500b50d56748c5fb4c6b60eed6444291539646f015b31f29d0b00207",
+    "reports_xiiot/metrics_logreg.json": "481eaf08ef06e7281c455f5ee95ca1fc695367f936a2de1c8b0ffcb0c807501c",
+    "reports_xiiot/metrics_rf.json": "7f823fedd33fbeee204878a98204fd711e4f274e7ff9ac5e687d333735ccefbd",
+    "reports_xiiot/metrics_xgb.json": "3cf2a2b92e79c730d3b2d5d53020859432ef1453b12f85f89087a33820754cdf"
+  },
+  "code_sha256": {
+    "scripts/cost_selection.py": "21707ed96e48153b9e70498c920400499490d0bf71c0c7647f45530e2379d671",
+    "scripts/xiiotid_cost_robustness.py": "d57ed9d468156a018e8651546ead593e4a7c4958da7431803ae193a5dba04c6b",
+    "scripts/xiiotid_cost_regions.py": "e50edec7cf8acbb49201516de98b27ed2be84f36d64a2d430c321b2bb81d909d"
+  },
+  "outputs_sha256": {
+    "normalized_counts.csv": "8b87792e7bbb0f24c6c1e69a0a69fe979af3ad3d7b439f438c9ff187cf2349a7",
+    "choices.csv": "7365a3592c17447ff4c676bbabb672cc40afcefd3e473fe29b259019b303f8f7",
+    "frontiers.csv": "94470dbe6531140bd842ce5e59868af2c5cdfede6d01403bdffed4570fef81dd",
+    "radii.csv": "fe78f19688d145db8e47964d4f54da6a890e4f3abaa3954a7490534c054bbac1"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "_note": "Common protocol v1 for X-IIoTID and CICIoT2023, fixed before any new computation. It compares three ways of choosing the IDS on validation: Macro-F1, nominal cost and minimax regret. Scenario analysis on class-conditional error rates already measured, not a simulation of new captures: it assumes those rates unchanged when pi and the weights change. pi and lambda are sensitivity hypotheses, not measured frequencies or damages. Both historical test parts were already examined, so the comparison is retrospective: no new prospective confirmation, no transfer of a model between datasets, no evaluation on real traffic. Zero new fits, hyper-parameter searches, inferences or split changes in this analysis.",
+  "version": 1,
+  "base_commit": "32174928ca0326bd9c5cfbc011b954b921bc4e51",
+  "inputs": "configs/common_inputs_v1.json",
+  "unit": "one full confusion matrix per dataset, model, part and seed, with explicit labels and a pinned sha256; matrices of different seeds are never summed as if they were new samples",
+  "semantics": {
+    "missed_attack": "true attack class i predicted as the benign class, CM[i, benign]",
+    "false_alarm": "true benign predicted as attack class i, CM[benign, i]",
+    "attack_to_attack": "true attack predicted as another attack class: reported apart, with no cost in the main comparison"
+  },
+  "scenarios": {
+    "pi": ["0.001", "0.01", "0.1"],
+    "lambda": ["1", "10", "100"],
+    "meaning": "pi is the share of attacks; lambda is the nominal cost ratio FN/FP. Nine scenarios, the same for both datasets. Not to be confused with RISK-02, where lambda scaled the false-alarm side."
+  },
+  "weights": {
+    "w_fn": "lambda for every attack class",
+    "w_fp": "1 for every attack class",
+    "components": "fn:<class> for every attack class in label order, then fp:<class> in the same order",
+    "no_severity_scale": "no new severity scale in the main comparison; the RISK-03 weights stay a supplementary X-IIoTID analysis, reproduced unchanged by scripts/cost_selection.py --risk03"
+  },
+  "normalisation": {
+    "q": "q_i = validation support of attack class i / validation support of all the attack classes of the same dataset; the same q is used for the test control",
+    "e_fn": "pi * q_i * CM[i, benign] / support_i",
+    "e_fp": "(1 - pi) * CM[benign, i] / support_benign",
+    "cost": "sum_i (w_fn_i * e_fn_i + w_fp_i * e_fp_i), expected cost per observation, also reported per 100000 observations",
+    "supports": "class-conditional rates use the supports of their own matrix; raw costs are never compared between datasets of different size",
+    "zero_support": "reported with dataset, model, part, seed and class, and the analysis stops: no division by zero, no class dropped silently"
+  },
+  "robustness": {
+    "box": "every weight moves independently in [(1 - delta) w0_i, (1 + delta) w0_i]",
+    "delta_range": ["0", "1"],
+    "delta_summary": ["0", "0.25", "0.5", "1"],
+    "formula": "the exact RISK-03 formula, imported unchanged from scripts/xiiotid_cost_robustness.py: worst case of m against k = w0.d + delta * sum_i w0_i |d_i| with d = e_m - e_k, R_m(delta) = max(0, max_k worst case), radius = -(w0.d) / sum_i w0_i |d_i| when w0.d <= 0",
+    "frontiers": "exact rational partition of [0, 1] by minimax-regret model and every pairwise radius, plus summaries at delta_summary",
+    "stress": "delta = 1 is a stress test: some weights can be zero",
+    "vertices": "never enumerated on real data (2^66 vertices for CICIoT2023); enumeration only in synthetic checks with 2 or 3 components"
+  },
+  "seeds": {
+    "rule": "with several seeds the model family is chosen on the mean over seeds of the validation coefficients e and of the validation Macro-F1, never on the best seed",
+    "report": "single seeds and their observed min and max are reported apart, not as independent samples or confidence intervals"
+  },
+  "macro_f1": "unweighted mean over every class, benign included, of 2TP / (2TP + FP + FN), recomputed exactly from the validation matrix",
+  "policies": {
+    "macro_f1": "argmax of the validation Macro-F1; only on equal F1: lowest nominal cost of the scenario, then the fixed order",
+    "nominal": "argmin of the validation cost of the scenario; ties: highest Macro-F1, then the fixed order",
+    "minimax_regret": "argmin of R_m(delta) on validation in the same scenario; ties: lowest nominal cost, highest Macro-F1, then the fixed order"
+  },
+  "order": ["lgbm", "xgb", "rf", "logreg", "kan"],
+  "pools": {
+    "main": "rf, xgb, lgbm on each dataset, with the existing models and splits",
+    "supplementary": "the main pool plus logreg on X-IIoTID or kan on CICIoT2023, only when all of their records are already available; models are never trained to make the pools symmetric"
+  },
+  "control": "the choices are frozen on validation and applied to test with the same pi, lambda, delta and q; the best test model only appears as a retrospective reference that quantifies the regret, and never guides the choice",
+  "outputs": "CSV/JSON with normalised counts, validation choices, test costs and regret and per-seed results, for the nine scenarios and the four summary deltas on both datasets, with a manifest of input and output hashes",
+  "changes": "a substantial difference in the inputs is documented before any change to this protocol; a change produces a new version, never an edit of v1"
+}
